@@ -1,0 +1,5 @@
+ion-contrib-python==3.2.0
+numpy
+ttkbootstrap
+opencv-python
+aravis-python
