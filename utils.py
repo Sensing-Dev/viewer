@@ -259,3 +259,7 @@ def get_num_bit_shift(pixelformat):
 
 def get_bit_width(pixelformat):
     return pfnc[pixelformat]["depth"]
+
+
+def normalize_to_uint8(pixelformat):
+    return (pow(2, 8) - 1 ) / (pow(2, pfnc[pixelformat]["depth"]) - 1 )

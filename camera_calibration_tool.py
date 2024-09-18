@@ -7,7 +7,7 @@ from PIL import Image
 from PIL import ImageTk
 import tkinter as tk
 
-from utils import log_write, get_bb_for_obtain_image, get_num_bit_shift, get_bit_width, required_bit_depth
+from utils import log_write, get_bb_for_obtain_image, get_bit_width, required_bit_depth
 from utils import PREFIX_NAME1, PREFIX_NAME0, IPAD_X, IPAD_Y
 
 import queue
@@ -319,10 +319,8 @@ class Display:
         width = self.dev_info["Width"]
         height = self.dev_info["Height"]
         ratio = width / height
-        data_type = np.uint8 if pixelformat == "Mono8" else np.uint16
+        data_type = np.uint8 if required_bit_depth(pixelformat) == 8 else np.uint16
         depth_of_buffer = np.iinfo(data_type).bits
-        num_bit_shift = get_num_bit_shift(pixelformat)
-        coef = pow(2, num_bit_shift)
         frames = [None] * 2
         descriptor_sizes = []
         for i in range(num_device):
@@ -343,17 +341,13 @@ class Display:
                 for i in range(num_device):
                     frame = np.frombuffer(binary_outputs_data[i].tobytes()[descriptor_sizes[i]:], dtype=data_type)
                     frame_copy = np.array(frame.reshape(height, width))
-                    frame_copy *= coef
-                    if depth_of_buffer == 16:
-                        frame_copy = (frame_copy / 256).astype("uint8")
-                    frames[i] = frame_copy
+                    img_normalized = (frame_copy - frame_copy.min()) / (frame_copy.max() - frame_copy.min())
+                    frames[i] = (img_normalized * 255).astype("uint8")
             else:
                 for i in range(num_device):
                     frame = binary_outputs_data[i]
-                    frame *= coef
-                    if depth_of_buffer == 16:
-                        frame = (frame / 256).astype("uint8")
-                    frames[i] = frame
+                    img_normalized = (frame - frame.min()) / (frame.max() - frame.min())
+                    frames[i] = (img_normalized * 255).astype("uint8")
 
             frame0 = frames[0]
 
