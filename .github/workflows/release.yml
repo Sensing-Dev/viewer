@@ -44,7 +44,7 @@ jobs:
       uses: softprops/action-gh-release@v1
       with:
           files: |
-              ${{ github.workspace }}/viewer-${{ github.ref_name }}-win64.zip
+              viewer-${{ github.ref_name }}-win64.zip
       env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
