@@ -61,13 +61,13 @@ jobs:
       run: |
         mkdir viewer
         cd viewer
-        cp ../README.md .
-        cp ../requirements.txt .
-        cp ../LICENSE .
-        cp ../camera_calibration_tool.py .
-        cp ../convert.py .
-        cp ../gui.py .
-        cp ../utils.py .
+        cp ./README.md viewer
+        cp ./requirements.txt viewer
+        cp ./LICENSE viewer
+        cp ./camera_calibration_tool.py viewer
+        cp ./convert.py viewer
+        cp ./gui.py viewer
+        cp ./utils.py viewer
         zip -r viewer-${{ github.ref_name }}-linux.tar.gz viewer
 
     - name: Extract archive content test
