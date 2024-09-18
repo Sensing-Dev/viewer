@@ -52,7 +52,7 @@ class Converter:
                                 required_bit,
                                 coef,
                                 output_directory,
-                                height, width, payload_in_byte, pixelformat,
+                                height, width, pixelformat,
                                 is_color,
                                 r_gains[i],
                                 g_gains[i],
@@ -100,7 +100,7 @@ class Converter:
                                         required_bit,
                                         coef,
                                         output_directory,
-                                        height, width, payload_in_byte, pixelformat,
+                                        height, width, pixelformat,
                                         is_color,
                                         r_gain=1.0,
                                         g_gain=1.0,
@@ -108,11 +108,14 @@ class Converter:
                                         extension="jpg", rotate_limit=60):
         cursor = 0
         img_size = width * height
+        image_payload_byte = img_size
         with open(file_path, mode='rb') as f:
             if required_bit_depth(pixelformat) == 8:
                 d = np.fromfile(f, dtype=np.uint8)
+                image_payload_byte *= 1
             elif required_bit_depth(pixelformat) == 16:
                 d = np.fromfile(f, dtype=np.uint16)
+                image_payload_byte *= 2
             else:
                 log_write("Error", "PixelFormat: {} is not supported".format(self.pixelformat))
                 return
@@ -132,7 +135,7 @@ class Converter:
                     break
                 img_arr = d[offset:offset + img_size]
                 offset = offset + img_size
-                cursor = cursor + payload_in_byte
+                cursor = cursor + image_payload_byte
                 if img_arr.size == img_size:
                     if extension == 'raw':
                         img_arr.tofile(os.path.join(output_directory, str(frame_id) + "." + extension))

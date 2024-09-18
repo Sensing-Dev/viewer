@@ -229,6 +229,7 @@ def get_device_info(parser, load_json_path="default.json"):
     test_info["Blue Gains"] = setting_config["g_gains"] if load_json else [1.0] * dev_info["Number of Devices"]
     test_info["Green Gains"] = setting_config["b_gains"] if load_json else [1.0] * dev_info["Number of Devices"]
     test_info["Gendc Mode"] = setting_config["gendc_mode"] if load_json and dev_info["GenDCStreamingMode"] else False
+    test_info["Delete Bins"] = setting_config["delete_bin"] if load_json else True
     for key in dev_info:
         log_write("INFO", "{0:>20s} : {1}".format(key, dev_info[key]))
 
@@ -258,3 +259,7 @@ def get_num_bit_shift(pixelformat):
 
 def get_bit_width(pixelformat):
     return pfnc[pixelformat]["depth"]
+
+
+def normalize_to_uint8(pixelformat):
+    return (pow(2, 8) - 1 ) / (pow(2, pfnc[pixelformat]["depth"]) - 1 )
