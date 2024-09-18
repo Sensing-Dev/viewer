@@ -44,7 +44,7 @@ jobs:
       uses: softprops/action-gh-release@v1
       with:
           files: |
-              viewer-${{ github.ref_name }}-win64.zip
+              ${{ github.workspace }}/viewer-${{ github.ref_name }}-win64.zip
       env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -60,14 +60,15 @@ jobs:
     - name: Create ZIP Archive
       run: |
         mkdir viewer
-        cp ./README.md viewer
-        cp ./requirements.txt viewer
-        cp ./LICENSE viewer
-        cp ./camera_calibration_tool.py viewer
-        cp ./convert.py viewer
-        cp ./gui.py viewer
-        cp ./utils.py viewer
-        zip -r viewer-${{ github.ref_name }}-linux.tar.gz viewer
+        cd viewer
+        cp ../README.md .
+        cp ../requirements.txt .
+        cp ../LICENSE .
+        cp ../camera_calibration_tool.py .
+        cp ../convert.py .
+        cp ../gui.py .
+        cp ../utils.py .
+        tar -czvf ${{ github.workspace }}/viewer-${{ github.ref_name }}-linux.tar.gz .
 
     - name: Extract archive content test
       run: |
