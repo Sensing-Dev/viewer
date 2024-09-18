@@ -52,7 +52,7 @@ class Converter:
                                 required_bit,
                                 coef,
                                 output_directory,
-                                height, width, payload_in_byte,
+                                height, width, pixelformat,
                                 is_color,
                                 r_gains[i],
                                 g_gains[i],

@@ -1,9 +1,12 @@
 ## Changelog
 
-### Update 2024-09-13
+### Update 2024-09-13:
 1. fix and enabled delete checkbox
 2. add delete option to json file
 3. fix the error in non-gendc mode with gendc device
+
+### Update 2024-09-09:
+1. fix normalization for preview
 
 ### Update 2024-09-06:
 1. add delete checkbox
