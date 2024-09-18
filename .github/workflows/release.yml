@@ -60,7 +60,6 @@ jobs:
     - name: Create ZIP Archive
       run: |
         mkdir viewer
-        cd viewer
         cp ./README.md viewer
         cp ./requirements.txt viewer
         cp ./LICENSE viewer
