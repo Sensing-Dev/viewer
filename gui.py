@@ -111,7 +111,7 @@ class U3VCameraGUI:
         combo.grid(column=1, row=0, sticky="we", pady=5, )
         self.combo = combo
 
-        self.delete_bin = tk.BooleanVar(value=True)
+        self.delete_bin = tk.BooleanVar(value=test_info["Delete Bins"])
         self.testCheck = tk.Checkbutton(config_option_frame, variable=self.delete_bin, justify=LEFT, text="delete bin")
         self.testCheck.grid(column=2, row=0, sticky="w", pady=5, )
 
@@ -303,13 +303,13 @@ class U3VCameraGUI:
                 self.master.after(0, self.converting_state_on_button)
                 if extension == "mp4":
                     self.converter.convert_to_video(self.capture.output_directories, self.is_gendc_mode,
-                                                    to_delete=self.delete_bin)
+                                                    to_delete=self.delete_bin.get())
                 elif extension != "bin":
                     self.converter.convert_to_img(self.capture.output_directories, self.is_gendc_mode,
                                                   r_gains=self.display.r_gains,
                                                   g_gains=self.display.g_gains,
                                                   b_gains=self.display.b_gains,
-                                                  extension=extension, to_delete=self.delete_bin)
+                                                  extension=extension, to_delete=self.delete_bin.get())
             except Exception as e:
                 print(e)
             finally:
@@ -383,7 +383,8 @@ class U3VCameraGUI:
                       "r_gains": self.display.r_gains,
                       "g_gains": self.display.g_gains,
                       "b_gains": self.display.b_gains,
-                      "gendc_mode": self.is_gendc_mode
+                      "gendc_mode": self.is_gendc_mode,
+                      "delete_bin": self.delete_bin.get()
                       }
 
             for i in range(self.num_device):
