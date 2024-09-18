@@ -1,0 +1,92 @@
+name: Release tools 
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  release-windows:
+    runs-on: windows-latest
+    steps:
+    
+    - name: Checkout repository
+      uses: actions/checkout@v4.1.1
+      with:
+        fetch-depth: 0
+        
+    - name: Create zip archive
+      run: |
+        New-Item -Path ${{ github.workspace }} -Name "viewer" -ItemType "directory"
+        Copy-Item ${{ github.workspace }}/README.md ${{ github.workspace }}/viewer
+        Copy-Item ${{ github.workspace }}/requirements.txt ${{ github.workspace }}/viewer
+        Copy-Item ${{ github.workspace }}/LICENSE ${{ github.workspace }}/viewer
+        Copy-Item ${{ github.workspace }}/camera_calibration_tool.py ${{ github.workspace }}/viewer
+        Copy-Item ${{ github.workspace }}/convert.py ${{ github.workspace }}/viewer
+        Copy-Item ${{ github.workspace }}/gui.py ${{ github.workspace }}/viewer
+        Copy-Item ${{ github.workspace }}/utils.py ${{ github.workspace }}/viewer
+        Compress-Archive -Path ${{ github.workspace }}/viewer -DestinationPath ${{ github.workspace }}/viewer-${{ github.ref_name }}-win64.zip
+
+    - name: Extract archive content test
+      run: |
+        New-Item -Path ${{ github.workspace }} -Name "check_archive_content" -ItemType "directory"
+        cd ${{ github.workspace }}\check_archive_content
+        Expand-Archive -Path ${{ github.workspace }}/viewer-${{ github.ref_name }}-win64.zip -DestinationPath .  
+
+    - name: Check if archive content exists
+      id: check_package_windows
+      uses: andstor/file-existence-action@v3
+      with:
+        files: "${{ github.workspace }}/check_archive_content/viewer/, ${{ github.workspace }}/check_archive_content/viewer/gui.py"
+        fail: true
+        
+    - name: Release-Windows
+      uses: softprops/action-gh-release@v1
+      with:
+          files: |
+              viewer-${{ github.ref_name }}-win64.zip
+      env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  release-linux:
+    runs-on: ubuntu-latest
+    steps:
+    
+    - name: Checkout repository
+      uses: actions/checkout@v4.1.1
+      with:
+        fetch-depth: 0
+
+    - name: Create ZIP Archive
+      run: |
+        mkdir viewer
+        cd viewer
+        cp ../README.md .
+        cp ../requirements.txt .
+        cp ../LICENSE .
+        cp ../camera_calibration_tool.py .
+        cp ../convert.py .
+        cp ../gui.py .
+        cp ../utils.py .
+        tar -czvf ${{ github.workspace }}/viewer-${{ github.ref_name }}-linux.tar.gz .
+
+    - name: Extract archive content test
+      run: |
+        mkdir -p check_archive_content/viewer
+        cd check_archive_content/viewer
+        tar -xvf ${{ github.workspace }}/viewer-${{ github.ref_name }}-linux.tar.gz  --strip-components 1
+
+    - name: Check if archive content exists
+      id: check_package_ubuntu
+      uses: andstor/file-existence-action@v3
+      with:
+        files: "${{ github.workspace }}/check_archive_content/viewer/, ${{ github.workspace }}/check_archive_content/viewer/gui.py"
+        fail: true
+        
+    - name: Release
+      uses: softprops/action-gh-release@v1
+      with:
+          files: |
+              viewer-${{ github.ref_name }}-linux.tar.gz
+      env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
