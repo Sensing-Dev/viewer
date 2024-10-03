@@ -8,7 +8,7 @@ from PIL import ImageTk
 import tkinter as tk
 
 from utils import log_write, get_bb_for_obtain_image, get_bit_width, required_bit_depth
-from utils import PREFIX_NAME1, PREFIX_NAME0, IPAD_X, IPAD_Y
+from utils import DEFAULT_PREFIX_NAME1, DEFAULT_PREFIX_NAME0, DEFAULT_GENDC_PREFIX_NAME0, DEFAULT_GENDC_PREFIX_NAME1
 
 import queue
 
@@ -87,10 +87,10 @@ class FrameCapture:
 
             if self.sim_mode:
                 node = builder.add(bb_name).set_params([num_devices,
-                                                       Param("pixel_format", pixelformat),
-                                                       Param("width", width), Param("height", height),
-                                                       Param("force_sim_mode", True),
-                                                       ])
+                                                        Param("pixel_format", pixelformat),
+                                                        Param("width", width), Param("height", height),
+                                                        Param("force_sim_mode", True),
+                                                        ])
             else:
                 # add a node to pipeline
                 node = builder.add(bb_name).set_iports([gain_ps[0], exposure_ps[0]]) \
@@ -99,7 +99,8 @@ class FrameCapture:
                      exposure_key]) if num_device == 1 \
                     else builder.add(bb_name) \
                     .set_iports([gain_ps[0], exposure_ps[0], gain_ps[1], exposure_ps[1]]) \
-                    .set_params([num_devices, frame_sync, realtime_display_mode, enable_control, gain_key, exposure_key])
+                    .set_params(
+                    [num_devices, frame_sync, realtime_display_mode, enable_control, gain_key, exposure_key])
 
             display_bi_p = node.get_port("output")
 
@@ -154,10 +155,10 @@ class FrameCapture:
                         # add 1st node to pipeline
                         if self.sim_mode:
                             node = builder.add(bb_name).set_params([num_devices,
-                                                                   Param("pixel_format", pixelformat),
-                                                                   Param("width", width), Param("height", height),
-                                                                   Param("force_sim_mode", True),
-                                                                   ])
+                                                                    Param("pixel_format", pixelformat),
+                                                                    Param("width", width), Param("height", height),
+                                                                    Param("force_sim_mode", True),
+                                                                    ])
                         else:
                             node = builder.add(bb_name) \
                                 .set_iports([gain_ps[0], exposure_ps[0]]) \
@@ -181,7 +182,8 @@ class FrameCapture:
                         t_node0 = builder.add("image_io_binarysaver_u{}x2".format(depth_of_buffer)) \
                             .set_iports([node.get_port("output")[0], device_ps[0], frame_ps[0], wp, hp, ]) \
                             .set_params(
-                            [Param("output_directory", self.output_directories[0]), Param("prefix", PREFIX_NAME0)])
+                            [Param("output_directory", self.output_directories[0]),
+                             Param("prefix", DEFAULT_PREFIX_NAME0)])
 
                         terminator0 = t_node0.get_port("output")
                         terminator0.bind(out0)
@@ -190,7 +192,8 @@ class FrameCapture:
                             t_node1 = builder.add("image_io_binarysaver_u{}x2".format(depth_of_buffer)) \
                                 .set_iports([node.get_port("output")[1], device_ps[1], frame_ps[1], wp, hp, ]) \
                                 .set_params(
-                                [Param("output_directory", self.output_directories[1]), Param("prefix", PREFIX_NAME1)])
+                                [Param("output_directory", self.output_directories[1]),
+                                 Param("prefix", DEFAULT_PREFIX_NAME1)])
                             terminator1 = t_node1.get_port("output")
                             terminator1.bind(out1)
                     else:
@@ -200,20 +203,22 @@ class FrameCapture:
 
                         if self.sim_mode:
                             node = builder.add("image_io_u3v_gendc").set_params([num_devices,
-                                                                                Param("pixel_format", pixelformat),
-                                                                                Param("width", width),
-                                                                                Param("height", height),
-                                                                                Param("force_sim_mode", True),
-                                                                                ])
+                                                                                 Param("pixel_format", pixelformat),
+                                                                                 Param("width", width),
+                                                                                 Param("height", height),
+                                                                                 Param("force_sim_mode", True),
+                                                                                 ])
                         else:
                             node = builder.add("image_io_u3v_gendc").set_iports([gain_ps[0], exposure_ps[0]]) \
                                 .set_params(
-                                [num_devices, frame_sync, Param("realtime_display_mode", False), enable_control, gain_key,
+                                [num_devices, frame_sync, Param("realtime_display_mode", False), enable_control,
+                                 gain_key,
                                  exposure_key]) if num_device == 1 \
                                 else builder.add("image_io_u3v_gendc") \
                                 .set_iports([gain_ps[0], exposure_ps[0], gain_ps[1], exposure_ps[1]]) \
                                 .set_params(
-                                [num_devices, frame_sync, Param("realtime_display_mode", False), enable_control, gain_key,
+                                [num_devices, frame_sync, Param("realtime_display_mode", False), enable_control,
+                                 gain_key,
                                  exposure_key])
 
                         gendc_p = node.get_port("gendc")
@@ -222,7 +227,8 @@ class FrameCapture:
                             .set_iports(
                             [node.get_port("gendc")[0], node.get_port("device_info")[0], payloadsize_ps[0], ]) \
                             .set_params(
-                            [Param("output_directory", self.output_directories[0]), Param("prefix", "gendc_0-")])
+                            [Param("output_directory", self.output_directories[0]),
+                             Param("prefix", DEFAULT_GENDC_PREFIX_NAME0)])
                         terminator0 = t_node0.get_port("output")
                         terminator0.bind(out0)
                         if num_device == 2:
@@ -230,7 +236,8 @@ class FrameCapture:
                                 .set_iports(
                                 [node.get_port("gendc")[1], node.get_port("device_info")[1], payloadsize_ps[1], ]) \
                                 .set_params(
-                                [Param("output_directory", self.output_directories[1]), Param("prefix", "gendc_1-")])
+                                [Param("output_directory", self.output_directories[1]),
+                                 Param("prefix", DEFAULT_GENDC_PREFIX_NAME1)])
                             terminator1 = t_node1.get_port("output")
                             terminator1.bind(out1)
                 elif not self.start_save and not is_display:
@@ -243,10 +250,10 @@ class FrameCapture:
                     # add first node to pipeline
                     if self.sim_mode:
                         node = builder.add(bb_name).set_params([num_devices,
-                                                               Param("pixel_format", pixelformat),
-                                                               Param("width", width), Param("height", height),
-                                                               Param("force_sim_mode", True),
-                                                               ])
+                                                                Param("pixel_format", pixelformat),
+                                                                Param("width", width), Param("height", height),
+                                                                Param("force_sim_mode", True),
+                                                                ])
                     else:
                         node = builder.add(bb_name) \
                             .set_iports([gain_ps[0], exposure_ps[0]]) \
@@ -425,11 +432,11 @@ class Display:
             node = builder.add("image_processing_normalize_raw_image") \
                 .set_iports([image_p]) \
                 .set_params([Param("bit_width", get_bit_width(pixelformat)),
-                            Param("bit_shift", 0)])
+                             Param("bit_shift", 0)])
 
             node = builder.add("image_processing_bayer_demosaic_linear").set_iports([node.get_port("output")]) \
                 .set_params([Param("bayer_pattern", self.test_info["Color Pattern"]), Param("width", width),
-                            Param("height", height)]) # Bayer to BGR
+                             Param("height", height)])  # Bayer to BGR
 
             node = builder.add("base_denormalize_3d_uint8") \
                 .set_iports([node.get_port("output")])

@@ -10,8 +10,11 @@ import os
 
 from aravis import Aravis
 
-PREFIX_NAME0 = "sensor_0-"
-PREFIX_NAME1 = "sensor_1-"
+DEFAULT_PREFIX_NAME0 = "sensor_0-"
+DEFAULT_PREFIX_NAME1 = "sensor_1-"
+
+DEFAULT_GENDC_PREFIX_NAME0 = "gendc_0-"
+DEFAULT_GENDC_PREFIX_NAME1 = "gendc_1-"
 
 IPAD_X = 10
 IPAD_Y = 10
@@ -111,7 +114,7 @@ def get_device_info(parser, load_json_path="default.json"):
         dev_info["DeviceModelNames"] = []
         for i in range(dev_info["Number of Devices"]):
             dev_info["DeviceModelNames"].append("fake-" + str(i))
-
+        dev_info["GenDCStreamingMode"] = False
     else:
         test_info["Simulation Mode"] = SIMULATION
         test_info["Default Directory"] = args.directory

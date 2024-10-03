@@ -314,7 +314,7 @@ class U3VCameraGUI:
                 print(e)
             finally:
                 self.progressBar['value'] = 0
-                # after saving, enable start button
+                # after saving, enable startpip3 install gendc-pythonbutton
                 self.master.after(0, self.reenable_button)
 
         if self.button_on_save:  # start saving
