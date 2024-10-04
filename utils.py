@@ -217,10 +217,13 @@ def get_device_info(parser, load_json_path="default.json"):
             for i in range(dev_info["Number of Devices"]):
                 try:
                     dev_info[dev_info["Gain Key"]].append(devices[i].get_float_feature_value(dev_info["Gain Key"]))
-                    dev_info[dev_info["ExposureTime Key"]].append(devices[i].get_float_feature_value(dev_info["ExposureTime Key"]))
+                    dev_info[dev_info["ExposureTime Key"]].append(
+                        devices[i].get_float_feature_value(dev_info["ExposureTime Key"]))
                 except:
-                    dev_info[dev_info["Gain Key"]].append(float(devices[i].get_integer_feature_value(dev_info["Gain Key"])))
-                    dev_info[dev_info["ExposureTime Key"]].append(float(devices[i].get_integer_feature_value(dev_info["ExposureTime Key"])))
+                    dev_info[dev_info["Gain Key"]].append(
+                        float(devices[i].get_integer_feature_value(dev_info["Gain Key"])))
+                    dev_info[dev_info["ExposureTime Key"]].append(
+                        float(devices[i].get_integer_feature_value(dev_info["ExposureTime Key"])))
 
         for device in devices:
             del device
@@ -233,6 +236,8 @@ def get_device_info(parser, load_json_path="default.json"):
     test_info["Green Gains"] = setting_config["b_gains"] if load_json else [1.0] * dev_info["Number of Devices"]
     test_info["Gendc Mode"] = setting_config["gendc_mode"] if load_json and dev_info["GenDCStreamingMode"] else False
     test_info["Delete Bins"] = setting_config["delete_bin"] if load_json else True
+    test_info["Window infos"] = setting_config["winfos"] if load_json else [dev_info['Width'], dev_info['Height']] * dev_info["Number of Devices"]
+
     for key in dev_info:
         log_write("INFO", "{0:>20s} : {1}".format(key, dev_info[key]))
 
@@ -265,4 +270,4 @@ def get_bit_width(pixelformat):
 
 
 def normalize_to_uint8(pixelformat):
-    return (pow(2, 8) - 1 ) / (pow(2, pfnc[pixelformat]["depth"]) - 1 )
+    return (pow(2, 8) - 1) / (pow(2, pfnc[pixelformat]["depth"]) - 1)

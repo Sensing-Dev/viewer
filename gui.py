@@ -39,8 +39,6 @@ class U3VCameraGUI:
         self.img_width = dev_info['Width']
         self.img_height = dev_info['Height']
 
-        self.width = self.img_width * 1.5
-        self.height = self.img_height * 2
         self.thread_pool = []
 
         # start a thread that constantly pools the video sensor for
@@ -62,6 +60,7 @@ class U3VCameraGUI:
         self.fps = dev_info["FrameRate"]
 
         default_directory = test_info["Default Directory"]
+        winfos = test_info["Window infos"]
         for i in range(self.num_device):
             self.roots.append(Toplevel(self.master))
             root = self.roots[i]
@@ -69,7 +68,7 @@ class U3VCameraGUI:
             root.protocol("WM_DELETE_WINDOW", self.onClose)
             self.display_frames.append(tk.Frame(self.roots[i]))
             self.display_frames[i].pack(fill=BOTH, expand=True, padx=10, pady=5, )
-            root.geometry('{}x{}'.format(self.img_width, self.img_height))
+            root.geometry('{}x{}'.format(winfos[2*i], winfos[2*i+1]))
 
         self.control_root = Toplevel(self.master)
         self.control_root.protocol("WM_DELETE_WINDOW", self.onClose)
@@ -127,7 +126,6 @@ class U3VCameraGUI:
         config_option_frame.columnconfigure(2, weight=1)
         config_option_frame.columnconfigure(3, weight=2)
         config_option_frame.columnconfigure(4, weight=2)
-
 
         folderPath = StringVar(value=default_directory)
 
@@ -378,20 +376,30 @@ class U3VCameraGUI:
             self.master.quit()
 
         def save_json():
-            config = {"gains": self.capture.gains,
-                      "exposuretimes": self.capture.exposuretimes,
-                      "r_gains": self.display.r_gains,
-                      "g_gains": self.display.g_gains,
-                      "b_gains": self.display.b_gains,
-                      "gendc_mode": self.is_gendc_mode,
-                      "delete_bin": self.delete_bin.get()
-                      }
+            config = {
+                "device number": self.num_device,
+                "gains": self.capture.gains,
+                "exposuretimes": self.capture.exposuretimes,
+                "r_gains": self.display.r_gains,
+                "g_gains": self.display.g_gains,
+                "b_gains": self.display.b_gains,
+                "gendc_mode": self.is_gendc_mode,
+                "delete_bin": self.delete_bin.get(),
+                "winfos": winfos
+            }
+
 
             for i in range(self.num_device):
                 with open('default.json', 'w') as f:
                     json.dump(config, f)
 
         log_write("DEBUG", "Closing...")
+
+        winfos = []
+
+        for i in range(self.num_device):
+            winfos.extend([self.roots[i].winfo_width(), self.roots[i].winfo_height()])
+
         self.capture.stop = True
         self.display.stop = True
         self.quit = True
