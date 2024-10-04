@@ -49,7 +49,7 @@ def set_commandline_options():
                         help='Name of ExposureTime key defined for GenICam feature')
     parser.add_argument('-nd', '--number-of-device', default=2, type=int,
                         help='The number of devices')
-    parser.add_argument('-rt', '--realtime-display-mode', action=argparse.BooleanOptionalAction, default=True,
+    parser.add_argument('-rt', '--realtime-display-mode', action=argparse.BooleanOptionalAction, default=False,
                         help='Switch image capture mode(realtime)')
     parser.add_argument('-sync', '--frame-sync-mode', action=argparse.BooleanOptionalAction, default=False,
                         help='Switch image capture mode{synchronized}')
@@ -86,6 +86,8 @@ def get_device_info(parser, load_json_path="default.json"):
         if not os.path.isdir(test_info["Default Directory"]):
             os.mkdir(test_info["Default Directory"])
         dev_info["Number of Devices"] = 2
+        if load_json and dev_info["Number of Devices"]!= setting_config["device number"]:
+            load_json = False
         dev_info["Width"] = 640
         dev_info["Height"] = 480
 
@@ -152,7 +154,10 @@ def get_device_info(parser, load_json_path="default.json"):
                           f"While OperationMode is set to {dev_info['OperationMode']}, Number of Devices is set to {dev_info['Number of Devices']} (Default: 1)")
 
                 dev_info["Number of Devices"] = expected_num_device
-
+        
+        if load_json and dev_info["Number of Devices"] != setting_config["device number"]:
+            load_json = False
+            
         if dev_info["Number of Devices"] == 2:
             devices.append(Aravis.Camera.new(Aravis.get_device_id(1)).get_device())
 
