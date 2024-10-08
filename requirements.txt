@@ -3,3 +3,4 @@ numpy
 ttkbootstrap
 opencv-python
 aravis-python
+gendc-python

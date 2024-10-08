@@ -10,8 +10,11 @@ import os
 
 from aravis import Aravis
 
-PREFIX_NAME0 = "sensor_0-"
-PREFIX_NAME1 = "sensor_1-"
+DEFAULT_PREFIX_NAME0 = "sensor_0-"
+DEFAULT_PREFIX_NAME1 = "sensor_1-"
+
+DEFAULT_GENDC_PREFIX_NAME0 = "gendc_0-"
+DEFAULT_GENDC_PREFIX_NAME1 = "gendc_1-"
 
 IPAD_X = 10
 IPAD_Y = 10
@@ -46,7 +49,7 @@ def set_commandline_options():
                         help='Name of ExposureTime key defined for GenICam feature')
     parser.add_argument('-nd', '--number-of-device', default=2, type=int,
                         help='The number of devices')
-    parser.add_argument('-rt', '--realtime-display-mode', action=argparse.BooleanOptionalAction, default=True,
+    parser.add_argument('-rt', '--realtime-display-mode', action=argparse.BooleanOptionalAction, default=False,
                         help='Switch image capture mode(realtime)')
     parser.add_argument('-sync', '--frame-sync-mode', action=argparse.BooleanOptionalAction, default=False,
                         help='Switch image capture mode{synchronized}')
@@ -83,6 +86,8 @@ def get_device_info(parser, load_json_path="default.json"):
         if not os.path.isdir(test_info["Default Directory"]):
             os.mkdir(test_info["Default Directory"])
         dev_info["Number of Devices"] = 2
+        if load_json and dev_info["Number of Devices"]!= setting_config["device number"]:
+            load_json = False
         dev_info["Width"] = 640
         dev_info["Height"] = 480
 
@@ -111,7 +116,7 @@ def get_device_info(parser, load_json_path="default.json"):
         dev_info["DeviceModelNames"] = []
         for i in range(dev_info["Number of Devices"]):
             dev_info["DeviceModelNames"].append("fake-" + str(i))
-
+        dev_info["GenDCStreamingMode"] = False
     else:
         test_info["Simulation Mode"] = SIMULATION
         test_info["Default Directory"] = args.directory
@@ -149,7 +154,10 @@ def get_device_info(parser, load_json_path="default.json"):
                           f"While OperationMode is set to {dev_info['OperationMode']}, Number of Devices is set to {dev_info['Number of Devices']} (Default: 1)")
 
                 dev_info["Number of Devices"] = expected_num_device
-
+        
+        if load_json and dev_info["Number of Devices"] != setting_config["device number"]:
+            load_json = False
+            
         if dev_info["Number of Devices"] == 2:
             devices.append(Aravis.Camera.new(Aravis.get_device_id(1)).get_device())
 
@@ -214,10 +222,13 @@ def get_device_info(parser, load_json_path="default.json"):
             for i in range(dev_info["Number of Devices"]):
                 try:
                     dev_info[dev_info["Gain Key"]].append(devices[i].get_float_feature_value(dev_info["Gain Key"]))
-                    dev_info[dev_info["ExposureTime Key"]].append(devices[i].get_float_feature_value(dev_info["ExposureTime Key"]))
+                    dev_info[dev_info["ExposureTime Key"]].append(
+                        devices[i].get_float_feature_value(dev_info["ExposureTime Key"]))
                 except:
-                    dev_info[dev_info["Gain Key"]].append(float(devices[i].get_integer_feature_value(dev_info["Gain Key"])))
-                    dev_info[dev_info["ExposureTime Key"]].append(float(devices[i].get_integer_feature_value(dev_info["ExposureTime Key"])))
+                    dev_info[dev_info["Gain Key"]].append(
+                        float(devices[i].get_integer_feature_value(dev_info["Gain Key"])))
+                    dev_info[dev_info["ExposureTime Key"]].append(
+                        float(devices[i].get_integer_feature_value(dev_info["ExposureTime Key"])))
 
         for device in devices:
             del device
@@ -230,6 +241,8 @@ def get_device_info(parser, load_json_path="default.json"):
     test_info["Green Gains"] = setting_config["b_gains"] if load_json else [1.0] * dev_info["Number of Devices"]
     test_info["Gendc Mode"] = setting_config["gendc_mode"] if load_json and dev_info["GenDCStreamingMode"] else False
     test_info["Delete Bins"] = setting_config["delete_bin"] if load_json else True
+    test_info["Window infos"] = setting_config["winfos"] if load_json else [dev_info['Width'], dev_info['Height']] * dev_info["Number of Devices"]
+
     for key in dev_info:
         log_write("INFO", "{0:>20s} : {1}".format(key, dev_info[key]))
 
@@ -262,4 +275,4 @@ def get_bit_width(pixelformat):
 
 
 def normalize_to_uint8(pixelformat):
-    return (pow(2, 8) - 1 ) / (pow(2, pfnc[pixelformat]["depth"]) - 1 )
+    return (pow(2, 8) - 1) / (pow(2, pfnc[pixelformat]["depth"]) - 1)

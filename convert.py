@@ -8,7 +8,7 @@ from PIL import Image
 import os
 # Define width and height
 from utils import log_write, required_bit_depth, get_num_bit_shift
-from utils import PREFIX_NAME0, PREFIX_NAME1
+from utils import DEFAULT_PREFIX_NAME0, DEFAULT_PREFIX_NAME1, DEFAULT_GENDC_PREFIX_NAME0, DEFAULT_GENDC_PREFIX_NAME1
 from gendc_python.gendc_separator import descriptor as gendc
 
 GDC_INTENSITY = 1
@@ -72,14 +72,12 @@ class Converter:
                                 extension, rotate_limit=rotate_limit)
                         if to_delete:
                             del_bin(file_path, time_out)
-
+                    log_write("DEBUG", "Device {}: Finish saving images in {}".format(i, output_directory))
                 except Exception as e:
                     log_write("Error", e)
-                finally:
-                    log_write("DEBUG", "Finish saving image in {}".format(output_directory))
 
-        prefix_name0 = "gendc_0-" if is_gendc else PREFIX_NAME0
-        prefix_name1 = "gendc_1-" if is_gendc else PREFIX_NAME1
+        prefix_name0 = DEFAULT_GENDC_PREFIX_NAME0 if is_gendc else DEFAULT_PREFIX_NAME0
+        prefix_name1 = DEFAULT_GENDC_PREFIX_NAME1 if is_gendc else DEFAULT_PREFIX_NAME1
 
         for i in range(num_device):
             output_directory = output_directories[i]
@@ -91,7 +89,7 @@ class Converter:
                 log_write("WARNING", "Cannot found config file")
                 continue
             group_id = sensor_info["group_id"]
-            log_write("DEBUG", "Group-id is {}".format(group_id))
+            log_write("DEBUG", "Device {}: Group-id is {}".format(i, group_id))
             if group_id != 0:
                 shutil.move(output_directory, output_directory.replace("group0", "group{}".format(group_id)))
 
@@ -117,7 +115,7 @@ class Converter:
                 d = np.fromfile(f, dtype=np.uint16)
                 image_payload_byte *= 2
             else:
-                log_write("Error", "PixelFormat: {} is not supported".format(self.pixelformat))
+                log_write("Error", "PixelFormat: {} is not supported".format(pixelformat))
                 return
             file_size_in_byte = len(d) * required_bit // 8
             offset = 0
@@ -153,7 +151,7 @@ class Converter:
                             G = (G * g_gain).clip(0, 1)
                             B = (B * b_gain).clip(0, 1)
                             img_float32 = cv2.merge([R, G, B])
-                            img_arr = (img_float32 * 255).astype(np.uint8) # convert to 8 bit 0 ~ 255
+                            img_arr = (img_float32 * 255).astype(np.uint8)  # convert to 8 bit 0 ~ 255
 
                         # Make into PIL Image and save
                         PILimage = Image.fromarray(img_arr)
@@ -219,7 +217,7 @@ class Converter:
                         else:
                             log_write("Warning", "Incomplete image-{}".format(str(frame_id)))
                 except Exception as e:
-                    log_write("ERROR", "convert single frame error: {}".format(e))
+                    log_write("ERROR", "convert single frame in {} failed : {}".format(file_path, e))
                 finally:
                     cursor = cursor + payload_in_byte
 
@@ -253,10 +251,13 @@ class Converter:
                 # sort
                 if not is_gendc:
                     file_list.sort(
-                        key=lambda f: int(f.replace(PREFIX_NAME0, "").replace(PREFIX_NAME1, "").replace('.bin', "")))
+                        key=lambda f: int(
+                            f.replace(DEFAULT_PREFIX_NAME0, "").replace(DEFAULT_PREFIX_NAME1, "").replace('.bin', "")))
                 else:
                     file_list.sort(
-                        key=lambda f: int(f.replace("gendc_0-", "").replace("gendc_1-", "").replace('.bin', "")))
+                        key=lambda f: int(
+                            f.replace(DEFAULT_GENDC_PREFIX_NAME0, "").replace(DEFAULT_GENDC_PREFIX_NAME1, "").replace(
+                                '.bin', "")))
 
                 if len(file_list) == 0:
                     log_write("WARNING", "No bin file exists")
@@ -279,8 +280,7 @@ class Converter:
                                                              file_path,
                                                              required_bit,
                                                              coef,
-                                                             is_color, height, width, payload_in_byte, pixel_format,
-                                                             rotate_limit)
+                                                             is_color, height, width, pixel_format, rotate_limit)
 
 
                     else:
@@ -292,15 +292,17 @@ class Converter:
 
                     if to_delete:
                         del_bin(file_path, time_out)
+
+                log_write("DEBUG", "Device {}: Finish saving video in {}".format(i, output_directory))
+
             except Exception as e:
                 log_write("Error", e)
             finally:
                 for writer in video_writers:
                     writer.release()
-                log_write("DEBUG", "Finish saving video in {}".format(output_directory))
 
-        prefix_name0 = "gendc_0-" if is_gendc else PREFIX_NAME0
-        prefix_name1 = "gendc_1-" if is_gendc else PREFIX_NAME1
+        prefix_name0 = DEFAULT_GENDC_PREFIX_NAME0 if is_gendc else DEFAULT_PREFIX_NAME0
+        prefix_name1 = DEFAULT_GENDC_PREFIX_NAME1 if is_gendc else DEFAULT_PREFIX_NAME1
 
         for i in range(num_device):
             output_directory = output_directories[i]
@@ -352,9 +354,9 @@ class Converter:
                                 img_arr = cv2.cvtColor(img_arr, cv2.COLOR_BayerBG2RGB)  # transfer Bayer to RGB
                                 video_writer.write(img_arr)
                         else:
-                            log_write("Warning", "Incomplete image-{}".format(str(frame_id)))
+                            log_write("Warning", "Incomplete frame-{}".format(str(frame_id)))
                 except Exception as e:
-                    log_write("convert single frame error", e)
+                    log_write("ERROR", "convert single frame in {} failed : {}".format(file_path, e))
                 finally:
                     cursor = cursor + payload_in_byte
 
@@ -362,16 +364,18 @@ class Converter:
                                         file_path,
                                         required_bit,
                                         coef,
-                                        is_color, height, width, payload_in_byte, pixel_format, rotate_limit=60):
+                                        is_color, height, width, pixel_format, rotate_limit=60):
 
         # bin file is in 2D
         img_size = width * height
         position = 0
+        image_payload_byte = img_size
         with open(file_path, mode='rb') as f:
             if required_bit == 8:
                 d = np.fromfile(f, dtype=np.uint8)
             elif required_bit == 16:
                 d = np.fromfile(f, dtype=np.uint16)
+                image_payload_byte = img_size * 2
             else:
                 log_write("Error", "PixelFormat: {} is not supported".format(pixel_format))
                 return
@@ -391,7 +395,7 @@ class Converter:
                     break
                 img_arr = d[offset:offset + img_size]
                 offset = offset + img_size
-                position = position + payload_in_byte
+                position = position + image_payload_byte
                 if img_arr.size == img_size:
                     img_arr = img_arr * coef
                     img_arr = img_arr.reshape((height, width))
