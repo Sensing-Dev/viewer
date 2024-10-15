@@ -175,10 +175,11 @@ class U3VCameraGUI:
         mode.pack(side="left", padx=5, pady=5, )
 
         quit_btn = ttk.Button(self.control_root, text="Quit ", width=10, bootstyle=DANGER, command=self.onClose)
-        quit_btn.pack(side="right", padx=5, pady=5, )
-        gend_btn = ttk.Button(self.control_root, text="Switch Mode", width=15, bootstyle=INFO,
-                              command=lambda mode=mode: self.onRedirect(mode))
-        gend_btn.pack(side="right", padx=5, pady=5, )
+        quit_btn.pack(side="right",padx=2, pady=5, )
+        gend_btn = ttk.Button(self.control_root, text="Switch Mode", width=15, bootstyle=INFO,command=lambda mode=mode: self.onRedirect(mode))
+        gend_btn.pack(side="right", padx=2, pady=5, )
+        reset_btn = ttk.Button(self.control_root, text="Reset", width=10, bootstyle=INFO, command=lambda: setattr(self.capture, 'is_reset', True))
+        reset_btn.pack(side="right", padx=2, pady=5, )
 
         if not dev_info["GenDCStreamingMode"]:
             gend_btn.configure(state="disabled")
