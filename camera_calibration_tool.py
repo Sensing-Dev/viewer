@@ -38,6 +38,7 @@ class FrameCapture:
         self.gendc_mode = False
         self.stop = False
         self.start_save = False
+        self.is_reset = False
         self.output_directories = [test_info["Default Directory"]] * dev_info["Number of Devices"]
 
     def run(self):
@@ -240,8 +241,9 @@ class FrameCapture:
                                  Param("prefix", DEFAULT_GENDC_PREFIX_NAME1)])
                             terminator1 = t_node1.get_port("output")
                             terminator1.bind(out1)
-                elif not self.start_save and not is_display:
+                elif (not self.start_save and not is_display) or self.is_reset:
                     is_display = True
+                    self.is_reset = False
                     # clear_queue()
                     builder = Builder()
                     builder.set_target("host")
