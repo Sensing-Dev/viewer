@@ -316,7 +316,7 @@ class U3VCameraGUI:
                 print(e)
             finally:
                 self.progressBar['value'] = 0
-                # after saving, enable startpip3 install gendc-pythonbutton
+                # after saving, enable start button
                 self.master.after(0, self.reenable_button)
 
         if self.button_on_save:  # start saving
@@ -368,6 +368,7 @@ class U3VCameraGUI:
             self.stop_save = True
             self.capture.start_save = False
             self.button_on_save = not self.button_on_save  # stop button becomes save button
+            self.display.is_redirected = True  # saving -> display
 
     def onClose(self):
         # set the stop event, cleanup the camera, and allow the rest of
