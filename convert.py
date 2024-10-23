@@ -200,7 +200,7 @@ class Converter:
                                 img_arr = img_arr * coef
                                 img_arr = img_arr.reshape((height, width))
                                 if required_bit == 16 and extension != "png":
-                                    img_arr = (img_arr / 256).astype("uint8")  # convert to 8 bit
+                                    img_arr = (img_arr / 256).clip(0, 255).astype("uint8")  # convert to 8 bit
                                 if is_color:
                                     img_arr = cv2.cvtColor(img_arr, cv2.COLOR_BayerBG2RGB)  # transfer Bayer to BGR
                                     img_normalized = cv2.normalize(img_arr, None, 0, 1.0,

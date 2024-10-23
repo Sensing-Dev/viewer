@@ -49,13 +49,14 @@ def set_commandline_options():
                         help='Name of ExposureTime key defined for GenICam feature')
     parser.add_argument('-nd', '--number-of-device', default=2, type=int,
                         help='The number of devices')
-    parser.add_argument('-rt', '--realtime-display-mode', action=argparse.BooleanOptionalAction, default=False,
+    parser.add_argument('-rt', '--realtime-display-mode', action=argparse.BooleanOptionalAction, default=True,
                         help='Switch image capture mode(realtime)')
-    parser.add_argument('-sync', '--frame-sync-mode', action=argparse.BooleanOptionalAction, default=False,
+    parser.add_argument('-sync', '--frame-sync-mode', action=argparse.BooleanOptionalAction, default=True,
                         help='Switch image capture mode{synchronized}')
-    parser.add_argument('--sim-mode', default=False, type=bool)
-    parser.add_argument('--pixel-format', default='Mono8', type=str,
-                        help='valid only --color-display-mode is active')
+    parser.add_argument('--sim-mode', action=argparse.BooleanOptionalAction, default=False)
+    if '--sim-mode' in sys.argv:
+        parser.add_argument('--pixel-format', default='Mono8', type=str,
+                        help='valid only --sim-mode is active')
 
     return parser
 

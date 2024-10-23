@@ -285,11 +285,15 @@ class U3VCameraGUI:
             try:
                 self.progressBar['value'] = 0
                 if save_time > 0:
-                    for i in range(save_time):
-                        if self.quit or self.stop_save:
+                    while True:
+                        if self.capture.exclude:
+                            for i in range(save_time):
+                                if self.quit or self.stop_save:
+                                    break
+                                self.progressBar['value'] += 100 / save_time
+                                time.sleep(1)
                             break
-                        self.progressBar['value'] += 100 / save_time
-                        time.sleep(1)
+                    self.capture.exclude = False
                 else:
                     while not self.quit and not self.stop_save:
                         self.progressBar['value'] = 0
@@ -312,7 +316,7 @@ class U3VCameraGUI:
                 print(e)
             finally:
                 self.progressBar['value'] = 0
-                # after saving, enable startpip3 install gendc-pythonbutton
+                # after saving, enable start button
                 self.master.after(0, self.reenable_button)
 
         if self.button_on_save:  # start saving
@@ -343,12 +347,14 @@ class U3VCameraGUI:
 
             if save_time == 0:
                 # self.stop_sav_btn.configure(state='active')
+                self.capture.save_duration_defined = False
                 self.button_on_save = not self.button_on_save  # save button becomes stop button
                 self.save_btn.config(text='Stop Saving')
                 log_write("WARNING",
                           "GenDC Mode: {}, you don't define the time duration, please use stop save button to stop saving!".format(
                               self.is_gendc_mode))
             else:
+                self.capture.save_duration_defined = True
                 self.save_btn.configure(
                     state='disabled')  # disabled save button, but nextime you click it is still save button
                 log_write("DEBUG", "GenDC Mode: {} , start saving for {} s".format(self.is_gendc_mode, save_time))
@@ -362,6 +368,7 @@ class U3VCameraGUI:
             self.stop_save = True
             self.capture.start_save = False
             self.button_on_save = not self.button_on_save  # stop button becomes save button
+            self.display.is_redirected = True  # saving -> display
 
     def onClose(self):
         # set the stop event, cleanup the camera, and allow the rest of
