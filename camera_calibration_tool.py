@@ -40,6 +40,10 @@ class FrameCapture:
         self.start_save = False
         self.output_directories = [test_info["Default Directory"]] * dev_info["Number of Devices"]
 
+        self.save_duration_defined = False
+        self.exclude = False
+
+
     def run(self):
         try:
             self.start_save = False
@@ -240,6 +244,11 @@ class FrameCapture:
                                  Param("prefix", DEFAULT_GENDC_PREFIX_NAME1)])
                             terminator1 = t_node1.get_port("output")
                             terminator1.bind(out1)
+
+                    if self.save_duration_defined:
+                        builder.run()
+                        self.exclude = True
+
                 elif not self.start_save and not is_display:
                     is_display = True
                     # clear_queue()
