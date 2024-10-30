@@ -7,7 +7,7 @@ from PIL import Image
 from PIL import ImageTk
 import tkinter as tk
 
-from utils import log_write, get_bb_for_obtain_image, get_bit_width, required_bit_depth
+from utils import log_write, get_bb_for_obtain_image, get_bit_width, required_bit_depth, get_num_bit_shift
 from utils import DEFAULT_PREFIX_NAME1, DEFAULT_PREFIX_NAME0, DEFAULT_GENDC_PREFIX_NAME0, DEFAULT_GENDC_PREFIX_NAME1
 
 import queue
@@ -340,6 +340,9 @@ class Display:
         depth_of_buffer = np.iinfo(data_type).bits
         frames = [None] * 2
         descriptor_sizes = []
+        num_bit_shift = get_num_bit_shift(pixelformat)
+        coef = pow(2, num_bit_shift)
+
         for i in range(num_device):
             descriptor_sizes.append(self.dev_info["PayloadSize"][i] - self.dev_info["Width"] * self.dev_info[
                 "Height"] * depth_of_buffer // 8)  # specifically design for v1.2
@@ -365,8 +368,9 @@ class Display:
             else:
                 for i in range(num_device):
                     frame = binary_outputs_data[i]
-                    img_normalized = (frame - frame.min()) / (frame.max() - frame.min())
-                    frames[i] = (img_normalized * 255).astype("uint8")
+                    print(coef)
+                    frame *= coef
+                    frames[i] = (frame / 256).clip(0, 255).astype("uint8")
 
             frame0 = frames[0]
 
