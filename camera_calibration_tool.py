@@ -16,7 +16,9 @@ q = queue.Queue()
 
 MAX_BUF_SIZE = 50
 def clear_queue():
+    print(q.qsize())
     q.queue.clear()
+    
 
 
 class FrameCapture:

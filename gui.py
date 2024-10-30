@@ -285,8 +285,10 @@ class U3VCameraGUI:
             try:
                 self.progressBar['value'] = 0
                 if save_time > 0:
+                    self.save_btn.config(text='Pipelining')
                     while True:
                         if self.capture.exclude:
+                            self.save_btn.config(text='Saving')
                             for i in range(save_time):
                                 if self.quit or self.stop_save:
                                     break
