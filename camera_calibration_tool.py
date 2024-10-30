@@ -363,7 +363,7 @@ class Display:
                 for i in range(num_device):
                     frame = np.frombuffer(binary_outputs_data[i].tobytes()[descriptor_sizes[i]:], dtype=data_type)
                     frame_copy = np.array(frame.reshape(height, width))
-                    frame_copy *= coef
+                    frame = frame * coef
                     if depth_of_buffer == 8:
                         frames[i] = frame_copy.astype("uint8")
                     else:
@@ -371,7 +371,7 @@ class Display:
             else:
                 for i in range(num_device):
                     frame = binary_outputs_data[i]
-                    frame *= coef
+                    frame = frame * coef
                     if depth_of_buffer == 8:
                         frames[i] = frame.clip(0, 255).astype("uint8")
                     else:
