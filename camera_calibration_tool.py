@@ -14,7 +14,7 @@ import queue
 
 q = queue.Queue()
 
-
+MAX_BUF_SIZE = 50
 def clear_queue():
     q.queue.clear()
 
@@ -347,6 +347,8 @@ class Display:
             if self.is_redirected:
                 self.is_redirected = False
                 clear_queue()  # empty the stream
+            elif q.qsize() > MAX_BUF_SIZE:
+                clear_queue()
 
             try:
                 binary_outputs_data, is_GenDC = q.get(block=False)  # don't block
@@ -497,6 +499,9 @@ class Display:
             if self.is_redirected:
                 self.is_redirected = False
                 clear_queue()  # empty the stream
+            elif q.qsize() > MAX_BUF_SIZE:
+                clear_queue()
+
             try:
                 binary_outputs_data, is_GenDC = q.get(block=False)  # don't block
             except queue.Empty:
