@@ -1,6 +1,7 @@
 from __future__ import print_function
 
 import datetime
+import multiprocessing
 import os
 import json
 from ttkbootstrap.constants import *
@@ -29,6 +30,12 @@ class U3VCameraGUI:
         self.display = Display(dev_info, test_info)
         self.capture = FrameCapture(dev_info, test_info)
         self.converter = Converter(dev_info, test_info)
+        self.q = multiprocessing.Manager().Queue()
+        q = multiprocessing.Manager().Queue()
+
+        self.capture.q = self.q
+        self.display.q = self.q
+
 
         # initialize the sub window and image panel
         self.master = master
@@ -68,7 +75,7 @@ class U3VCameraGUI:
             root.protocol("WM_DELETE_WINDOW", self.onClose)
             self.display_frames.append(tk.Frame(self.roots[i]))
             self.display_frames[i].pack(fill=BOTH, expand=True, padx=10, pady=5, )
-            root.geometry('{}x{}'.format(winfos[2*i], winfos[2*i+1]))
+            root.geometry('{}x{}'.format(winfos[2 * i], winfos[2 * i + 1]))
 
         self.control_root = Toplevel(self.master)
         self.control_root.protocol("WM_DELETE_WINDOW", self.onClose)
@@ -388,7 +395,6 @@ class U3VCameraGUI:
                 "winfos": winfos
             }
 
-
             for i in range(self.num_device):
                 with open('default.json', 'w') as f:
                     json.dump(config, f)
@@ -409,6 +415,7 @@ class U3VCameraGUI:
 
 if __name__ == "__main__":
     # construct the argument parse and parse the arguments
+
     settings = set_commandline_options()
     root = tk.Tk()
 

@@ -1,5 +1,5 @@
 import traceback
-
+import queue
 import cv2
 from ionpy import Node, Builder, Buffer, Port, Param, Type, TypeCode
 import numpy as np
@@ -10,13 +10,12 @@ import tkinter as tk
 from utils import log_write, get_bb_for_obtain_image, get_bit_width, required_bit_depth
 from utils import DEFAULT_PREFIX_NAME1, DEFAULT_PREFIX_NAME0, DEFAULT_GENDC_PREFIX_NAME0, DEFAULT_GENDC_PREFIX_NAME1
 
-import queue
 
-q = queue.Queue()
+def clear_queue(q):
+    print(q.qsize())
+    # while not q.empty():
+    #     q.get_nowait()
 
-
-def clear_queue():
-    q.queue.clear()
 
 
 class FrameCapture:
@@ -39,6 +38,7 @@ class FrameCapture:
         self.stop = False
         self.start_save = False
         self.output_directories = [test_info["Default Directory"]] * dev_info["Number of Devices"]
+        self.q = None
 
     def run(self):
         try:
@@ -140,10 +140,10 @@ class FrameCapture:
                 builder.run()
                 # save gendc
                 if self.start_save and self.gendc_mode:
-                    q.put((gendc_outputs_data, True))
+                    self.q.put((gendc_outputs_data, True))
                 # save image or previewing
                 else:
-                    q.put((img_outputs_data, False))
+                    self.q.put((img_outputs_data, False))
 
                 if self.start_save and is_display:
                     is_display = False
@@ -275,7 +275,8 @@ class FrameCapture:
         except Exception as e:
             log_write("Error", traceback.format_exc())
         finally:
-            clear_queue()  # empty the stream
+
+            clear_queue(self.q)  # empty the stream
 
 
 def resize(ori, ratio: int, cur_width: int, cur_height: int) -> np.ndarray:
@@ -305,6 +306,7 @@ class Display:
         self.r_gains = test_info["Red Gains"]
         self.b_gains = test_info["Blue Gains"]
         self.g_gains = test_info["Green Gains"]
+        self.q = None
 
     def _display(self, master, root0, display_frame0, root1=None, display_frame1=None):
         try:
@@ -337,10 +339,10 @@ class Display:
         while not self.stop:
             if self.is_redirected:
                 self.is_redirected = False
-                clear_queue()  # empty the stream
+                # clear_queue(self.q)  # empty the stream
 
             try:
-                binary_outputs_data, is_GenDC = q.get(block=False)  # don't block
+                binary_outputs_data, is_GenDC = self.q.get(block=False)  # don't block
             except queue.Empty:
                 continue
             if is_GenDC:
@@ -487,9 +489,9 @@ class Display:
         while not self.stop:
             if self.is_redirected:
                 self.is_redirected = False
-                clear_queue()  # empty the stream
+                # clear_queue(self.q)  # empty the stream
             try:
-                binary_outputs_data, is_GenDC = q.get(block=False)  # don't block
+                binary_outputs_data, is_GenDC = self.q.get(block=False)  # don't block
             except queue.Empty:
                 continue
 
