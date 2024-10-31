@@ -5,7 +5,7 @@ This repository contains a GUI implementation for real-time video display and sa
 
 ## Requirement 
 1. `aravis-python==0.8.31`
-2. `ion-contrib-python==3.2.0`
+2. `ion-contrib-python==3.2.4`
 
 To install the necessary packages, run:
 ```bash
@@ -55,7 +55,7 @@ Command-Line Arguments
   - **Type**: `bool`
   
 - `--pixel-format` (default: `Mono8`)
-  - **Description**: Pixel format to use (valid only if color display mode is active).
+  - **Description**: Pixel format to use (valid only if sim mode is active).
   - **Type**: `str`
 
 ### Running in Simulation Mode
@@ -63,7 +63,7 @@ Command-Line Arguments
 To start the application in simulation mode, use the command below, ensuring that the arv-fake-camera.xml file path is correct:
 ```
 export GENICAM_FILENAME=<where your arv-fake-camera.xml located>
-python3 gui.py --sim-mode true --pixel-format=BayerBG8
+python3 gui.py --sim-mode --pixel-format=BayerBG8
 ```
 
 ### Running in Non-Simulation Mode
