@@ -364,15 +364,15 @@ class Display:
                     if depth_of_buffer == 8:
                         frames[i] = frame_copy.astype("uint8")
                     else:
-                        frames[i] = (frame_copy / 256).clip(0, 255).astype("uint8")
+                        frames[i] = (frame_copy / 256).astype("uint8")
             else:
                 for i in range(num_device):
                     frame = binary_outputs_data[i]
                     frame = frame * coef
                     if depth_of_buffer == 8:
-                        frames[i] = frame.clip(0, 255).astype("uint8")
+                        frames[i] = frame.astype("uint8")
                     else:
-                        frames[i] = (frame / 256).clip(0, 255).astype("uint8")
+                        frames[i] = (frame / 256).astype("uint8")
 
             frame0 = frames[0]
 
