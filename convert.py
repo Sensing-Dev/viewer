@@ -486,5 +486,5 @@ if __name__ == "__main__":
                            "Height": 1080,
                            "FrameRate": 60
                            }, {"Gendc Mode": False})
-    converter.convert_to_video(["/Users/xinyuli/Desktop/viewer/output/2024-11-05-11-58-17/group0/camera0"], False, False )
+    converter.convert_to_video(["./output"], False, False )
 # convert_to_img(2, ["./output","./output"], 640, 480, extension='jpg', pixel_format="BayerBG8")
