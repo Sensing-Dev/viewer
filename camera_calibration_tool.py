@@ -459,14 +459,14 @@ class Display:
             node = builder.add("base_denormalize_3d_uint8") \
                 .set_iports([node.get_port("output")])
 
-            node = builder.add("image_processing_reorder_color_channel_3d_uint8").set_iports([node.get_port("output")]) \
-                .set_params([Param("color_dim", 2)])  # BGR to RGB
+            # node = builder.add("image_processing_reorder_color_channel_3d_uint8").set_iports([node.get_port("output")]) \
+            #     .set_params([Param("color_dim", 2)])  # BGR to RGB
 
             node = builder.add("image_processing_color_dynamic_adjustment") \
                 .set_iports([
-                b_gain_ports[i],
-                g_gain_ports[i],
                 r_gain_ports[i],
+                g_gain_ports[i],
+                b_gain_ports[i],
                 node.get_port("output")])  # output(x, y, c)
 
             node = builder.add("base_reorder_buffer_3d_uint8") \
