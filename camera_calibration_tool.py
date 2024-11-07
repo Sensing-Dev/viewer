@@ -347,15 +347,14 @@ class Display:
         num_bit_shift = get_num_bit_shift(pixelformat)
         coef = pow(2, num_bit_shift)
 
+        dummy_image_tk0 = ImageTk.PhotoImage(self.dummy_image.resize((root0.winfo_height(), root0.winfo_width())))
 
-        dummy_image_tk = ImageTk.PhotoImage(self.dummy_image.resize((height, width)))
-        # dummy_image_tk = ImageTk.PhotoImage(Image.fromarray(np.full((height, width), 127, dtype=np.uint8)))
-
-        self.panel0 = tk.Label(master=display_frame0, image=dummy_image_tk)
+        self.panel0 = tk.Label(master=display_frame0, image=dummy_image_tk0)
         self.panel0.pack(fill="both")
 
         if num_device == 2:
-            self.panel1 = tk.Label(master=display_frame1, image=dummy_image_tk)
+            dummy_image_tk1 = ImageTk.PhotoImage(self.dummy_image.resize((root1.winfo_height(), root1.winfo_width())))
+            self.panel1 = tk.Label(master=display_frame1, image=dummy_image_tk1)
             self.panel1.pack(fill="both")
 
 
@@ -438,13 +437,14 @@ class Display:
         pixelformat = self.dev_info["PixelFormat"]
 
         # display dummy image first
-        dummy_image_tk = ImageTk.PhotoImage(self.dummy_image.resize((height, width)))
+        dummy_image_tk0 = ImageTk.PhotoImage(self.dummy_image.resize((root0.winfo_height(), root0.winfo_width())))
 
-        self.panel0 = tk.Label(master=display_frame0, image=dummy_image_tk)
+        self.panel0 = tk.Label(master=display_frame0, image=dummy_image_tk0)
         self.panel0.pack(fill="both")
 
         if num_device == 2:
-            self.panel1 = tk.Label(master=display_frame1, image=dummy_image_tk)
+            dummy_image_tk1 = ImageTk.PhotoImage(self.dummy_image.resize((root1.winfo_height(), root1.winfo_width())))
+            self.panel1 = tk.Label(master=display_frame1, image=dummy_image_tk1)
             self.panel1.pack(fill="both")
 
         # set I/O port
