@@ -1,3 +1,4 @@
+import time
 import traceback
 
 import cv2
@@ -15,9 +16,10 @@ import queue
 q = queue.Queue()
 
 MAX_BUF_SIZE = 50
+
+
 def clear_queue():
     q.queue.clear()
-    
 
 
 class FrameCapture:
@@ -313,6 +315,9 @@ class Display:
         self.b_gains = test_info["Blue Gains"]
         self.g_gains = test_info["Green Gains"]
 
+        # dummy_image
+        self.dummy_image = Image.open('./icon/loading-icon.jpg')
+
     def _display(self, master, root0, display_frame0, root1=None, display_frame1=None):
         try:
             if self.test_info["Color Display Mode"]:
@@ -326,6 +331,8 @@ class Display:
                     root1.quit()
         except Exception as e:
             log_write("ERROR", "Previewing error: {}".format(traceback.format_exc()))
+        finally:
+            self.dummy_image.close()
 
     def _display_2D(self, display_frame0, display_frame1, root0, root1):
         num_device = self.dev_info["Number of Devices"]
@@ -339,6 +346,18 @@ class Display:
         descriptor_sizes = []
         num_bit_shift = get_num_bit_shift(pixelformat)
         coef = pow(2, num_bit_shift)
+
+
+        dummy_image_tk = ImageTk.PhotoImage(self.dummy_image.resize((height, width)))
+        # dummy_image_tk = ImageTk.PhotoImage(Image.fromarray(np.full((height, width), 127, dtype=np.uint8)))
+
+        self.panel0 = tk.Label(master=display_frame0, image=dummy_image_tk)
+        self.panel0.pack(fill="both")
+
+        if num_device == 2:
+            self.panel1 = tk.Label(master=display_frame1, image=dummy_image_tk)
+            self.panel1.pack(fill="both")
+
 
         for i in range(num_device):
             descriptor_sizes.append(self.dev_info["PayloadSize"][i] - self.dev_info["Width"] * self.dev_info[
@@ -417,6 +436,16 @@ class Display:
         ratio = width / height
         num_device = self.dev_info["Number of Devices"]
         pixelformat = self.dev_info["PixelFormat"]
+
+        # display dummy image first
+        dummy_image_tk = ImageTk.PhotoImage(self.dummy_image.resize((height, width)))
+
+        self.panel0 = tk.Label(master=display_frame0, image=dummy_image_tk)
+        self.panel0.pack(fill="both")
+
+        if num_device == 2:
+            self.panel1 = tk.Label(master=display_frame1, image=dummy_image_tk)
+            self.panel1.pack(fill="both")
 
         # set I/O port
         wp = Port("width", Type(TypeCode.Int, 32, 1), 0)
