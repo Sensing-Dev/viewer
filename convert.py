@@ -143,7 +143,7 @@ class Converter:
                         if required_bit == 16 and extension != "png":
                             img_arr = (img_arr / 256).clip(0, 255).astype("uint8")  # convert to 8 bit 0 ~ 255
                         if is_color:
-                            img_arr = cv2.cvtColor(img_arr, cv2.COLOR_BayerBG2RGB)  # transfer Bayer to RGB
+                            img_arr = cv2.cvtColor(img_arr, cv2.COLOR_BayerBGGR2RGB)  # transfer Bayer to RGB
                             img_normalized = cv2.normalize(img_arr, None, 0, 1.0,
                                                            cv2.NORM_MINMAX, dtype=cv2.CV_32F)
                             (R, G, B) = cv2.split(img_normalized)
@@ -202,7 +202,7 @@ class Converter:
                                 if required_bit == 16 and extension != "png":
                                     img_arr = (img_arr / 256).clip(0, 255).astype("uint8")  # convert to 8 bit
                                 if is_color:
-                                    img_arr = cv2.cvtColor(img_arr, cv2.COLOR_BayerBG2RGB)  # transfer Bayer to BGR
+                                    img_arr = cv2.cvtColor(img_arr, cv2.COLOR_BayerBGGR2RGB)  # transfer Bayer to BGR
                                     img_normalized = cv2.normalize(img_arr, None, 0, 1.0,
                                                                    cv2.NORM_MINMAX, dtype=cv2.CV_32F)
                                     (R, G, B) = cv2.split(img_normalized)
@@ -224,6 +224,9 @@ class Converter:
     def convert_to_video(self,
                          output_directories,
                          is_gendc,
+                         r_gains,
+                         g_gains,
+                         b_gains,
                          to_delete=True,
                          rotate_limit=60,
                          time_out=5):  # time_out is 5 s
@@ -280,7 +283,12 @@ class Converter:
                                                              file_path,
                                                              required_bit,
                                                              coef,
-                                                             is_color, height, width, pixel_format, rotate_limit)
+                                                             height, width, pixel_format,
+                                                             is_color,
+                                                             r_gains[i],
+                                                             g_gains[i],
+                                                             b_gains[i],
+                                                             rotate_limit)
 
 
                     else:
@@ -288,7 +296,12 @@ class Converter:
                                                                file_path,
                                                                required_bit,
                                                                coef,
-                                                               is_color, height, width, payload_in_byte, rotate_limit)
+                                                               height, width, payload_in_byte,
+                                                               is_color,
+                                                               r_gains[i],
+                                                               g_gains[i],
+                                                               b_gains[i],
+                                                               rotate_limit)
 
                     if to_delete:
                         del_bin(file_path, time_out)
@@ -322,7 +335,12 @@ class Converter:
                                           file_path,
                                           required_bit,
                                           coef,
-                                          is_color, height, width, payload_in_byte, rotate_limit=60):
+                                          height, width, payload_in_byte,
+                                          is_color,
+                                          r_gain=1.0,
+                                          g_gain=1.0,
+                                          b_gain=1.0,
+                                          rotate_limit=60):
 
         cursor = 0
         with open(file_path, mode='rb') as f:
@@ -351,7 +369,18 @@ class Converter:
                             img_arr = img_arr * coef
                             img_arr = img_arr.reshape((height, width))
                             if is_color:
-                                img_arr = cv2.cvtColor(img_arr, cv2.COLOR_BayerBG2RGB)  # transfer Bayer to RGB
+                                img_arr = cv2.cvtColor(img_arr, cv2.COLOR_BayerBGGR2BGR)  # transfer Bayer to RGB
+                                img_normalized = cv2.normalize(img_arr, None, 0, 1.0,
+                                                               cv2.NORM_MINMAX, dtype=cv2.CV_32F)
+                                (B, G, R) = cv2.split(img_normalized)
+                                R = (R * r_gain).clip(0, 1)
+                                G = (G * g_gain).clip(0, 1)
+                                B = (B * b_gain).clip(0, 1)
+                                img_float32 = cv2.merge([B, G, R])
+                                if required_bit == 8:
+                                    img_arr = (img_float32 * 255).astype(np.uint8)  # convert to 8 bit 0 ~ 255
+                                else:
+                                    img_arr = (img_float32 * 65535).astype(np.uint16)  # convert to 8 bit 0 ~ 255
                                 video_writer.write(img_arr)
                         else:
                             log_write("Warning", "Incomplete frame-{}".format(str(frame_id)))
@@ -364,7 +393,12 @@ class Converter:
                                         file_path,
                                         required_bit,
                                         coef,
-                                        is_color, height, width, pixel_format, rotate_limit=60):
+                                        height, width, pixel_format,
+                                        is_color,
+                                        r_gain=1.0,
+                                        g_gain=1.0,
+                                        b_gain=1.0,
+                                        rotate_limit=60):
 
         # bin file is in 2D
         img_size = width * height
@@ -400,7 +434,19 @@ class Converter:
                     img_arr = img_arr * coef
                     img_arr = img_arr.reshape((height, width))
                     if is_color:
-                        img_arr = cv2.cvtColor(img_arr, cv2.COLOR_BayerBG2RGB)  # transfer Bayer to RGB
+                        img_arr = cv2.cvtColor(img_arr, cv2.COLOR_BayerBGGR2BGR)  # transfer Bayer to RGB
+                        img_normalized = cv2.normalize(img_arr, None, 0, 1.0,
+                                                       cv2.NORM_MINMAX, dtype=cv2.CV_32F)
+                        (B, G, R) = cv2.split(img_normalized)
+                        R = (R * r_gain).clip(0, 1)
+                        G = (G * g_gain).clip(0, 1)
+                        B = (B * b_gain).clip(0, 1)
+                        img_float32 = cv2.merge([B, G, R])
+                        if required_bit == 8:
+                            img_arr = (img_float32 * 255).astype(np.uint8)  # convert to 8 bit 0 ~ 255
+                        else:
+                            img_arr = (img_float32 * 65535).astype(np.uint16)  # convert to
+
                     video_writer.write(img_arr)
                 else:
                     log_write("Warning", "Incomplete frame-{}".format(str(frame_id)))
@@ -433,12 +479,12 @@ def read_config(file_path, time_out):
 
 
 if __name__ == "__main__":
-    converter = Converter({"PayloadSize": [640 * 480],
+    converter = Converter({"PayloadSize": [2074880],
                            "Number of Devices": 1,
                            "PixelFormat": "BayerBG8",
-                           "Width": 640,
-                           "Height": 480,
-                           "FrameRate": 25
+                           "Width": 1920,
+                           "Height": 1080,
+                           "FrameRate": 60
                            }, {"Gendc Mode": False})
-    converter.convert_to_img(["./output"], False, "jpg", [1, 1], [1, 1], [1, 1])
+    converter.convert_to_video(["./output"], False, [1.0],[1.0], [1.0] )
 # convert_to_img(2, ["./output","./output"], 640, 480, extension='jpg', pixel_format="BayerBG8")

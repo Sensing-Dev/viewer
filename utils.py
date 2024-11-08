@@ -10,11 +10,11 @@ import os
 
 from aravis import Aravis
 
-DEFAULT_PREFIX_NAME0 = "sensor_0-"
-DEFAULT_PREFIX_NAME1 = "sensor_1-"
+DEFAULT_PREFIX_NAME0 = "image0-"
+DEFAULT_PREFIX_NAME1 = "image1-"
 
-DEFAULT_GENDC_PREFIX_NAME0 = "gendc_0-"
-DEFAULT_GENDC_PREFIX_NAME1 = "gendc_1-"
+DEFAULT_GENDC_PREFIX_NAME0 = "gendc0-"
+DEFAULT_GENDC_PREFIX_NAME1 = "gendc1-"
 
 IPAD_X = 10
 IPAD_Y = 10
@@ -55,7 +55,7 @@ def set_commandline_options():
                         help='Switch image capture mode{synchronized}')
     parser.add_argument('--sim-mode', action=argparse.BooleanOptionalAction, default=False)
     if '--sim-mode' in sys.argv:
-        parser.add_argument('--pixel-format', default='Mono8', type=str,
+        parser.add_argument('--pixel-format', default='BayerBG8', type=str,
                         help='valid only --sim-mode is active')
 
     return parser

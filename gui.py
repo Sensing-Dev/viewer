@@ -310,6 +310,9 @@ class U3VCameraGUI:
                 self.master.after(0, self.converting_state_on_button)
                 if extension == "mp4":
                     self.converter.convert_to_video(self.capture.output_directories, self.is_gendc_mode,
+                                                    r_gains=self.display.r_gains,
+                                                    g_gains=self.display.g_gains,
+                                                    b_gains=self.display.b_gains,
                                                     to_delete=self.delete_bin.get())
                 elif extension != "bin":
                     self.converter.convert_to_img(self.capture.output_directories, self.is_gendc_mode,
