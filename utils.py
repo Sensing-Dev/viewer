@@ -150,10 +150,9 @@ def get_device_info(parser, load_json_path="default.json"):
         if devices[0].is_feature_available("OperationMode"):
             dev_info["OperationMode"] = devices[0].get_string_feature_value("OperationMode")
             expected_num_device = 1 if "Came1" in dev_info["OperationMode"] else 2
-            if expected_num_device != dev_info["Number of Devices"]:
+            if expected_num_device < dev_info["Number of Devices"]:
                 log_write("INFO",
                           f"While OperationMode is set to {dev_info['OperationMode']}, Number of Devices is set to {dev_info['Number of Devices']} (Default: 1)")
-
                 dev_info["Number of Devices"] = expected_num_device
         
         if load_json and dev_info["Number of Devices"] != setting_config["device number"]:
