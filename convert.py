@@ -144,8 +144,7 @@ class Converter:
                             img_arr = (img_arr / 256).clip(0, 255).astype("uint8")  # convert to 8 bit 0 ~ 255
                         if is_color:
                             img_arr = cv2.cvtColor(img_arr, cv2.COLOR_BayerBGGR2RGB)  # transfer Bayer to RGB
-                            img_normalized = cv2.normalize(img_arr, None, 0, 1.0,
-                                                           cv2.NORM_MINMAX, dtype=cv2.CV_32F)
+                            img_normalized = cv2.normalize(img_arr, None, 0, 1.0, cv2.NORM_MINMAX, dtype=cv2.CV_32F)
                             (R, G, B) = cv2.split(img_normalized)
                             R = (R * r_gain).clip(0, 1)
                             G = (G * g_gain).clip(0, 1)
@@ -202,9 +201,9 @@ class Converter:
                                 if required_bit == 16 and extension != "png":
                                     img_arr = (img_arr / 256).clip(0, 255).astype("uint8")  # convert to 8 bit
                                 if is_color:
-                                    img_arr = cv2.cvtColor(img_arr, cv2.COLOR_BayerBGGR2RGB)  # transfer Bayer to BGR
-                                    img_normalized = cv2.normalize(img_arr, None, 0, 1.0,
-                                                                   cv2.NORM_MINMAX, dtype=cv2.CV_32F)
+                                    img_arr = cv2.cvtColor(img_arr, cv2.COLOR_BayerBGGR2RGB)  # transfer Bayer to RGB
+                                    img_normalized = cv2.normalize(img_arr, None, 0, 1.0, cv2.NORM_MINMAX,
+                                                                   dtype=cv2.CV_32F)
                                     (R, G, B) = cv2.split(img_normalized)
                                     R = (R * r_gain).clip(0, 1)
                                     G = (G * g_gain).clip(0, 1)
@@ -267,13 +266,23 @@ class Converter:
                     continue
                 fourcc = cv2.VideoWriter_fourcc('m', 'p', '4', 'v')
 
-                if is_color:
+                if is_color: # bayerBG
                     out = cv2.VideoWriter(os.path.join(output_directory, "output.mp4".format(i)), fourcc, fps,
                                           (width, height), True)
-                else:
+
+                elif required_bit_depth(pixel_format) == 8:  # mono8
                     out = cv2.VideoWriter(os.path.join(output_directory, "output.mp4".format(i)), fourcc, fps,
                                           (width, height), False)
+                else: # mono10
+                    out = cv2.VideoWriter(os.path.join(output_directory, "output.mp4".format(i)), fourcc, fps,
+                                          (width, height), params=[cv2.VIDEOWRITER_PROP_DEPTH,
+                                                                   cv2.CV_16U,
+                                                                   cv2.VIDEOWRITER_PROP_IS_COLOR,
+                                                                   0,  # false
+                                                                   ], )
+                out.set(cv2.VIDEOWRITER_PROP_QUALITY, 100)
                 video_writers.append(out)
+
                 for file in file_list:
                     log_write("INFO", "Converting {} file into mp4, please wait".format(file))
                     file_path = os.path.join(output_directory, file)
@@ -369,19 +378,16 @@ class Converter:
                             img_arr = img_arr * coef
                             img_arr = img_arr.reshape((height, width))
                             if is_color:
-                                img_arr = cv2.cvtColor(img_arr, cv2.COLOR_BayerBGGR2BGR)  # transfer Bayer to RGB
-                                img_normalized = cv2.normalize(img_arr, None, 0, 1.0,
-                                                               cv2.NORM_MINMAX, dtype=cv2.CV_32F)
+                                img_arr = cv2.cvtColor(img_arr, cv2.COLOR_BayerBGGR2BGR)  # transfer Bayer to BGR
+                                img_normalized = cv2.normalize(img_arr, None, 0, 1.0, cv2.NORM_MINMAX, dtype=cv2.CV_32F)
                                 (B, G, R) = cv2.split(img_normalized)
                                 R = (R * r_gain).clip(0, 1)
                                 G = (G * g_gain).clip(0, 1)
                                 B = (B * b_gain).clip(0, 1)
                                 img_float32 = cv2.merge([B, G, R])
-                                if required_bit == 8:
-                                    img_arr = (img_float32 * 255).astype(np.uint8)  # convert to 8 bit 0 ~ 255
-                                else:
-                                    img_arr = (img_float32 * 65535).astype(np.uint16)  # convert to 8 bit 0 ~ 255
-                                video_writer.write(img_arr)
+                                img_arr = (img_float32 * 255).astype(np.uint8)  # convert to 8 bit 0 ~ 255
+
+                            video_writer.write(img_arr)
                         else:
                             log_write("Warning", "Incomplete frame-{}".format(str(frame_id)))
                 except Exception as e:
@@ -401,6 +407,7 @@ class Converter:
                                         rotate_limit=60):
 
         # bin file is in 2D
+
         img_size = width * height
         position = 0
         image_payload_byte = img_size
@@ -434,18 +441,14 @@ class Converter:
                     img_arr = img_arr * coef
                     img_arr = img_arr.reshape((height, width))
                     if is_color:
-                        img_arr = cv2.cvtColor(img_arr, cv2.COLOR_BayerBGGR2BGR)  # transfer Bayer to RGB
-                        img_normalized = cv2.normalize(img_arr, None, 0, 1.0,
-                                                       cv2.NORM_MINMAX, dtype=cv2.CV_32F)
+                        img_arr = cv2.cvtColor(img_arr, cv2.COLOR_BayerBGGR2BGR)  # transfer Bayer to BGR
+                        img_normalized = cv2.normalize(img_arr, None, 0, 1.0, cv2.NORM_MINMAX, dtype=cv2.CV_32F)
                         (B, G, R) = cv2.split(img_normalized)
                         R = (R * r_gain).clip(0, 1)
                         G = (G * g_gain).clip(0, 1)
                         B = (B * b_gain).clip(0, 1)
                         img_float32 = cv2.merge([B, G, R])
-                        if required_bit == 8:
-                            img_arr = (img_float32 * 255).astype(np.uint8)  # convert to 8 bit 0 ~ 255
-                        else:
-                            img_arr = (img_float32 * 65535).astype(np.uint16)  # convert to
+                        img_arr = (img_float32 * 255).astype(np.uint8)  # convert to 8 bit 0 ~ 255
 
                     video_writer.write(img_arr)
                 else:
@@ -481,10 +484,10 @@ def read_config(file_path, time_out):
 if __name__ == "__main__":
     converter = Converter({"PayloadSize": [2074880],
                            "Number of Devices": 1,
-                           "PixelFormat": "BayerBG8",
+                           "PixelFormat": "Mono12",
                            "Width": 1920,
                            "Height": 1080,
                            "FrameRate": 60
                            }, {"Gendc Mode": False})
-    converter.convert_to_video(["./output"], False, [1.0],[1.0], [1.0] )
+    converter.convert_to_video(["./output"], False,[1.0], [1.0], [1.0], False)
 # convert_to_img(2, ["./output","./output"], 640, 480, extension='jpg', pixel_format="BayerBG8")

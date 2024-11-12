@@ -56,7 +56,7 @@ def set_commandline_options():
     parser.add_argument('--sim-mode', action=argparse.BooleanOptionalAction, default=False)
     if '--sim-mode' in sys.argv:
         parser.add_argument('--pixel-format', default='BayerBG8', type=str,
-                        help='valid only --sim-mode is active')
+                            help='valid only --sim-mode is active')
 
     return parser
 
@@ -87,7 +87,7 @@ def get_device_info(parser, load_json_path="default.json"):
         if not os.path.isdir(test_info["Default Directory"]):
             os.mkdir(test_info["Default Directory"])
         dev_info["Number of Devices"] = 2
-        if load_json and dev_info["Number of Devices"]!= setting_config["device number"]:
+        if load_json and dev_info["Number of Devices"] != setting_config["device number"]:
             load_json = False
         dev_info["Width"] = 640
         dev_info["Height"] = 480
@@ -150,15 +150,14 @@ def get_device_info(parser, load_json_path="default.json"):
         if devices[0].is_feature_available("OperationMode"):
             dev_info["OperationMode"] = devices[0].get_string_feature_value("OperationMode")
             expected_num_device = 1 if "Came1" in dev_info["OperationMode"] else 2
-            if expected_num_device != dev_info["Number of Devices"]:
+            if expected_num_device < dev_info["Number of Devices"]:
                 log_write("INFO",
                           f"While OperationMode is set to {dev_info['OperationMode']}, Number of Devices is set to {dev_info['Number of Devices']} (Default: 1)")
-
                 dev_info["Number of Devices"] = expected_num_device
-        
+
         if load_json and dev_info["Number of Devices"] != setting_config["device number"]:
             load_json = False
-            
+
         if dev_info["Number of Devices"] == 2:
             devices.append(Aravis.Camera.new(Aravis.get_device_id(1)).get_device())
 
@@ -242,7 +241,8 @@ def get_device_info(parser, load_json_path="default.json"):
     test_info["Green Gains"] = setting_config["b_gains"] if load_json else [1.0] * dev_info["Number of Devices"]
     test_info["Gendc Mode"] = setting_config["gendc_mode"] if load_json and dev_info["GenDCStreamingMode"] else False
     test_info["Delete Bins"] = setting_config["delete_bin"] if load_json else True
-    test_info["Window infos"] = setting_config["winfos"] if load_json else [dev_info['Width'], dev_info['Height']] * dev_info["Number of Devices"]
+    test_info["Window infos"] = setting_config["winfos"] if load_json else [dev_info['Width'], dev_info['Height']] * \
+                                                                           dev_info["Number of Devices"]
 
     for key in dev_info:
         log_write("INFO", "{0:>20s} : {1}".format(key, dev_info[key]))
