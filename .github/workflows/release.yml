@@ -25,6 +25,8 @@ jobs:
         Copy-Item ${{ github.workspace }}/convert.py ${{ github.workspace }}/viewer
         Copy-Item ${{ github.workspace }}/gui.py ${{ github.workspace }}/viewer
         Copy-Item ${{ github.workspace }}/utils.py ${{ github.workspace }}/viewer
+        New-Item -Path ${{ github.workspace }}/viewer -Name "icon" -ItemType "directory"
+        Copy-Item ${{ github.workspace }}/icon/loading-icon.jpg ${{ github.workspace }}/viewer/icon
         Compress-Archive -Path ${{ github.workspace }}/viewer -DestinationPath ${{ github.workspace }}/viewer-${{ github.ref_name }}-win64.zip
 
     - name: Extract archive content test
@@ -68,6 +70,7 @@ jobs:
         cp ../convert.py .
         cp ../gui.py .
         cp ../utils.py .
+        cp -r ../icon  .
         tar -czvf ${{ github.workspace }}/viewer-${{ github.ref_name }}-linux.tar.gz .
 
     - name: Extract archive content test
