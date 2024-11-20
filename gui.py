@@ -57,7 +57,9 @@ class U3VCameraGUI:
 
         self.num_device = dev_info["Number of Devices"]
         self.pixel_format = dev_info["PixelFormat"]
+
         self.fps = dev_info["FrameRate"]
+        self.exposuretime_max = dev_info["ExposureTime Max"]
 
         default_directory = test_info["Default Directory"]
         winfos = test_info["Window infos"]
@@ -398,7 +400,10 @@ class U3VCameraGUI:
                 "b_gains": self.display.b_gains,
                 "gendc_mode": self.is_gendc_mode,
                 "delete_bin": self.delete_bin.get(),
-                "winfos": winfos
+                "winfos": winfos,
+####################        ADDITIONAL INFORMATION         ###########################
+                "exposuretime max":  self.exposuretime_max,
+                "fps": self.fps
             }
 
 
