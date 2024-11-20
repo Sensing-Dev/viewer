@@ -158,7 +158,7 @@ def get_device_info(parser, load_json_path="default.json"):
                           f"While OperationMode is set to {dev_info['OperationMode']}, Number of Devices is set to {dev_info['Number of Devices']} (Default: 1)")
                 dev_info["Number of Devices"] = expected_num_device
 
-        if load_json and dev_info["Number of Devices"] != setting_config["device number"]:
+        if load_json and "device number" in setting_config and dev_info["Number of Devices"] != setting_config["device number"]:
             load_json = False
 
         if dev_info["Number of Devices"] == 2:
@@ -220,7 +220,7 @@ def get_device_info(parser, load_json_path="default.json"):
                 dev_info["ExposureTime Max"] = setting_config["exposuretime max"]
             else:
                 log_write("ERROR", "Please manually set maximum exposure time in json file")
-                return
+                raise Exception()
 
         dev_info["PayloadSize"] = []
         for i in range(dev_info["Number of Devices"]):
@@ -230,9 +230,12 @@ def get_device_info(parser, load_json_path="default.json"):
         dev_info[dev_info["ExposureTime Key"]] = []
 
         if load_json:
-            dev_info[dev_info["Gain Key"]] = [min(gain, dev_info["Gain Max"]) for gain in setting_config["gains"]]
-            dev_info[dev_info["ExposureTime Key"]] = [min(exp, dev_info["ExposureTime Max"]) for exp in setting_config["exposuretimes"]]
+            dev_info[dev_info["Gain Key"]] = [min(gain, dev_info["Gain Max"]) for gain in setting_config["gains"]] \
+                                          if load_json and "gains" in setting_config else [dev_info["Gain Max"]] * dev_info["Number of Devices"]
 
+            dev_info[dev_info["ExposureTime Key"]] = [min(exp, dev_info["ExposureTime Max"]) for exp in setting_config["exposuretimes"]] \
+                                                 if load_json and "exposuretimes" in setting_config else \
+                                                [dev_info["ExposureTime Max"]] * dev_info["Number of Devices"]
         else:
             for i in range(dev_info["Number of Devices"]):
                 try:
