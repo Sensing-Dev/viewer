@@ -4,8 +4,8 @@
 This repository contains a GUI implementation for real-time video display and saving. It currently supports cameras using the **USB3 protocol**.
 
 ## Requirement 
-1. `aravis-python==0.8.31`
-2. `ion-contrib-python==3.2.5`
+1. `aravis-python==0.8.31.post1`
+2. `ion-contrib-python==3.2.6`
 
 To install the necessary packages, run:
 ```bash
