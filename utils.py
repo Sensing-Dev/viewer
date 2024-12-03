@@ -99,8 +99,8 @@ def get_device_info(parser, load_json_path="default.json"):
             dev_info["FrameRate"] = 25
 
         dev_info["ExposureTime Min"] = 0.0
-        if "exposuretime max" in setting_config:
-            dev_info["ExposureTime Max"] = setting_config["exposuretime max"]
+        if "exposuretime_max" in setting_config:
+            dev_info["ExposureTime Max"] = setting_config["exposuretime_max"]
         else:
             dev_info["ExposureTime Max"] = 1.0 / dev_info["FrameRate"] * 1000 * 1000
 
@@ -171,7 +171,16 @@ def get_device_info(parser, load_json_path="default.json"):
 
         dev_info["Width"] = devices[0].get_integer_feature_value("Width")
         dev_info["Height"] = devices[0].get_integer_feature_value("Height")
-        dev_info["PixelFormat"] = devices[0].get_string_feature_value("PixelFormat")
+
+        # If there is a conflict, please remove the pixelformat entry from default.json
+        if "pixelformat" in setting_config:
+            dev_info["PixelFormat"] = setting_config["pixelformat"]
+        else:
+            try:
+                dev_info["PixelFormat"] = devices[0].get_string_feature_value("PixelFormat")
+            except:
+                log_write("ERROR", "Can not found pixelformat from config, please manually set PixelFormat in json file")
+                raise Exception()
 
         if dev_info["PixelFormat"] not in pfnc:
             log_write("ERROR", "{} is currently not supported on calibration tool".format(dev_info["PixelFormat"]))
@@ -200,7 +209,7 @@ def get_device_info(parser, load_json_path="default.json"):
             dev_info["Gain Min"] = float(devices[0].get_integer_feature_bounds(dev_info["Gain Key"])[0])
             dev_info["Gain Max"] = float(devices[0].get_integer_feature_bounds(dev_info["Gain Key"])[1])
 
-        has_framerate_feature = False
+        has_fps_feature = False
         # get frame rate by AcquisitionFrameRate
         try:
             dev_info["FrameRate"] = devices[0].get_float_feature_value("AcquisitionFrameRate")
@@ -210,16 +219,17 @@ def get_device_info(parser, load_json_path="default.json"):
             if "fps" in setting_config:
                 dev_info["FrameRate"] = setting_config["fps"]
             else:
-                dev_info["FrameRate"] = 30  # use default fps = 30
+                log_write("ERROR", "Can not found fps from config, please manually set FrameRate in json file")
+                raise Exception()
 
         dev_info["ExposureTime Min"] = 0.0
-        if has_framerate_feature:
+        if has_fps_feature:
             dev_info["ExposureTime Max"] = 1.0 / dev_info["FrameRate"] * 1000 * 1000
         else:
-            if "exposuretime max" in setting_config:
-                dev_info["ExposureTime Max"] = setting_config["exposuretime max"]
+            if "exposuretime_max" in setting_config:
+                dev_info["ExposureTime Max"] = setting_config["exposuretime_max"]
             else:
-                log_write("ERROR", "Please manually set maximum exposure time in json file")
+                log_write("ERROR", "Can not found exposuretime max from config, please manually set maximum exposure time in json file")
                 raise Exception()
 
         dev_info["PayloadSize"] = []
