@@ -30,8 +30,10 @@ class Converter:
             return
         '''CONFIGURATION'''
         is_color = False
+        color_pattern = ""
         if pixelformat.startswith("Bayer"):
             is_color = True
+            color_pattern = self.test_info["Color Pattern"]
         num_bit_shift = get_num_bit_shift(pixelformat)
         required_bit = required_bit_depth(pixelformat)
         coef = pow(2, num_bit_shift)
@@ -54,6 +56,7 @@ class Converter:
                                 output_directory,
                                 height, width, pixelformat,
                                 is_color,
+                                color_pattern,
                                 r_gains[i],
                                 g_gains[i],
                                 b_gains[i],
@@ -66,6 +69,7 @@ class Converter:
                                 output_directory,
                                 height, width, payload_in_byte,
                                 is_color,
+                                color_pattern,
                                 r_gains[i],
                                 g_gains[i],
                                 b_gains[i],
@@ -100,6 +104,7 @@ class Converter:
                                         output_directory,
                                         height, width, pixelformat,
                                         is_color,
+                                        color_pattern,
                                         r_gain=1.0,
                                         g_gain=1.0,
                                         b_gain=1.0,
@@ -143,7 +148,10 @@ class Converter:
                         if required_bit == 16 and extension != "png":
                             img_arr = (img_arr / 256).clip(0, 255).astype("uint8")  # convert to 8 bit 0 ~ 255
                         if is_color:
-                            img_arr = cv2.cvtColor(img_arr, cv2.COLOR_BayerBGGR2RGB)  # transfer Bayer to RGB
+                            if color_pattern == "BRRG":
+                                img_arr = cv2.cvtColor(img_arr, cv2.COLOR_BayerBGGR2RGB)  # transfer Bayer to RGB
+                            elif color_pattern == "RGGB":
+                                img_arr = cv2.cvtColor(img_arr, cv2.COLOR_BayerRGGB2RGB)  # transfer Bayer to RGB
                             img_normalized = cv2.normalize(img_arr, None, 0, 1.0, cv2.NORM_MINMAX, dtype=cv2.CV_32F)
                             (R, G, B) = cv2.split(img_normalized)
                             R = (R * r_gain).clip(0, 1)
@@ -165,6 +173,7 @@ class Converter:
                                           output_directory,
                                           height, width, payload_in_byte,
                                           is_color,
+                                          color_pattern,
                                           r_gain=1.0,
                                           g_gain=1.0,
                                           b_gain=1.0,
@@ -201,7 +210,11 @@ class Converter:
                                 if required_bit == 16 and extension != "png":
                                     img_arr = (img_arr / 256).clip(0, 255).astype("uint8")  # convert to 8 bit
                                 if is_color:
-                                    img_arr = cv2.cvtColor(img_arr, cv2.COLOR_BayerBGGR2RGB)  # transfer Bayer to RGB
+                                    if color_pattern == "BRRG":
+                                        img_arr = cv2.cvtColor(img_arr, cv2.COLOR_BayerBGGR2RGB)  # transfer Bayer to RGB
+                                    elif color_pattern == "RGGB":
+                                        img_arr = cv2.cvtColor(img_arr, cv2.COLOR_BayerRGGB2RGB)  # transfer Bayer to RGB
+
                                     img_normalized = cv2.normalize(img_arr, None, 0, 1.0, cv2.NORM_MINMAX,
                                                                    dtype=cv2.CV_32F)
                                     (R, G, B) = cv2.split(img_normalized)
@@ -239,8 +252,10 @@ class Converter:
         fps = self.dev_info["FrameRate"]
         '''CONFIGURATION'''
         is_color = False
+        color_pattern = ""
         if not pixel_format.startswith("Mono"):
             is_color = True
+            color_pattern = self.test_info["Color Pattern"]
         num_bit_shift = get_num_bit_shift(pixel_format)
         coef = pow(2, num_bit_shift)
         required_bit = required_bit_depth(pixel_format)
@@ -294,6 +309,7 @@ class Converter:
                                                              coef,
                                                              height, width, pixel_format,
                                                              is_color,
+                                                             color_pattern,
                                                              r_gains[i],
                                                              g_gains[i],
                                                              b_gains[i],
@@ -307,6 +323,7 @@ class Converter:
                                                                coef,
                                                                height, width, payload_in_byte,
                                                                is_color,
+                                                               color_pattern,
                                                                r_gains[i],
                                                                g_gains[i],
                                                                b_gains[i],
@@ -346,6 +363,7 @@ class Converter:
                                           coef,
                                           height, width, payload_in_byte,
                                           is_color,
+                                          color_pattern,
                                           r_gain=1.0,
                                           g_gain=1.0,
                                           b_gain=1.0,
@@ -378,7 +396,10 @@ class Converter:
                             img_arr = img_arr * coef
                             img_arr = img_arr.reshape((height, width))
                             if is_color:
-                                img_arr = cv2.cvtColor(img_arr, cv2.COLOR_BayerBGGR2BGR)  # transfer Bayer to BGR
+                                if color_pattern == "BRRG":
+                                    img_arr = cv2.cvtColor(img_arr, cv2.COLOR_BayerBGGR2BGR)  # transfer Bayer to RGB
+                                elif color_pattern == "RGGB":
+                                    img_arr = cv2.cvtColor(img_arr, cv2.COLOR_BayerRGGB2BGR)  # transfer Bayer to RGB
                                 img_normalized = cv2.normalize(img_arr, None, 0, 1.0, cv2.NORM_MINMAX, dtype=cv2.CV_32F)
                                 (B, G, R) = cv2.split(img_normalized)
                                 R = (R * r_gain).clip(0, 1)
@@ -401,6 +422,7 @@ class Converter:
                                         coef,
                                         height, width, pixel_format,
                                         is_color,
+                                        color_pattern,
                                         r_gain=1.0,
                                         g_gain=1.0,
                                         b_gain=1.0,
@@ -441,7 +463,10 @@ class Converter:
                     img_arr = img_arr * coef
                     img_arr = img_arr.reshape((height, width))
                     if is_color:
-                        img_arr = cv2.cvtColor(img_arr, cv2.COLOR_BayerBGGR2BGR)  # transfer Bayer to BGR
+                        if color_pattern == "BRRG":
+                            img_arr = cv2.cvtColor(img_arr, cv2.COLOR_BayerBGGR2BGR)  # transfer Bayer to RGB
+                        elif color_pattern == "RGGB":
+                            img_arr = cv2.cvtColor(img_arr, cv2.COLOR_BayerRGGB2BGR)  # transfer Bayer to RGB
                         img_normalized = cv2.normalize(img_arr, None, 0, 1.0, cv2.NORM_MINMAX, dtype=cv2.CV_32F)
                         (B, G, R) = cv2.split(img_normalized)
                         R = (R * r_gain).clip(0, 1)
