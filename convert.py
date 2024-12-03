@@ -148,7 +148,7 @@ class Converter:
                         if required_bit == 16 and extension != "png":
                             img_arr = (img_arr / 256).clip(0, 255).astype("uint8")  # convert to 8 bit 0 ~ 255
                         if is_color:
-                            if color_pattern == "BRRG":
+                            if color_pattern == "BGGR":
                                 img_arr = cv2.cvtColor(img_arr, cv2.COLOR_BayerBGGR2RGB)  # transfer Bayer to RGB
                             elif color_pattern == "RGGB":
                                 img_arr = cv2.cvtColor(img_arr, cv2.COLOR_BayerRGGB2RGB)  # transfer Bayer to RGB
@@ -210,7 +210,7 @@ class Converter:
                                 if required_bit == 16 and extension != "png":
                                     img_arr = (img_arr / 256).clip(0, 255).astype("uint8")  # convert to 8 bit
                                 if is_color:
-                                    if color_pattern == "BRRG":
+                                    if color_pattern == "BGGR":
                                         img_arr = cv2.cvtColor(img_arr, cv2.COLOR_BayerBGGR2RGB)  # transfer Bayer to RGB
                                     elif color_pattern == "RGGB":
                                         img_arr = cv2.cvtColor(img_arr, cv2.COLOR_BayerRGGB2RGB)  # transfer Bayer to RGB
@@ -396,7 +396,7 @@ class Converter:
                             img_arr = img_arr * coef
                             img_arr = img_arr.reshape((height, width))
                             if is_color:
-                                if color_pattern == "BRRG":
+                                if color_pattern == "BGGR":
                                     img_arr = cv2.cvtColor(img_arr, cv2.COLOR_BayerBGGR2BGR)  # transfer Bayer to RGB
                                 elif color_pattern == "RGGB":
                                     img_arr = cv2.cvtColor(img_arr, cv2.COLOR_BayerRGGB2BGR)  # transfer Bayer to RGB
@@ -463,7 +463,7 @@ class Converter:
                     img_arr = img_arr * coef
                     img_arr = img_arr.reshape((height, width))
                     if is_color:
-                        if color_pattern == "BRRG":
+                        if color_pattern == "BGGR":
                             img_arr = cv2.cvtColor(img_arr, cv2.COLOR_BayerBGGR2BGR)  # transfer Bayer to RGB
                         elif color_pattern == "RGGB":
                             img_arr = cv2.cvtColor(img_arr, cv2.COLOR_BayerRGGB2BGR)  # transfer Bayer to RGB
