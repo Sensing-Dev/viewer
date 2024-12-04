@@ -84,7 +84,11 @@ def get_device_info(parser, load_json_path="default.json"):
         dev_info["Width"] = 640
         dev_info["Height"] = 480
 
-        dev_info["PixelFormat"] = args.pixel_format
+        if "pixelformat" in setting_config:
+            dev_info["PixelFormat"] = setting_config["pixelformat"]
+        else:
+            dev_info["PixelFormat"] = args.pixel_format
+
         dev_info["PayloadSize"] = [dev_info["Width"] * dev_info["Height"] * required_bit_depth(
             dev_info["PixelFormat"]) // 8] * dev_info["Number of Devices"]
         dev_info["Gain Min"] = 0
@@ -99,8 +103,8 @@ def get_device_info(parser, load_json_path="default.json"):
             dev_info["FrameRate"] = 25
 
         dev_info["ExposureTime Min"] = 0.0
-        if "exposuretime_max" in setting_config:
-            dev_info["ExposureTime Max"] = setting_config["exposuretime_max"]
+        if "exposuretime max" in setting_config:
+            dev_info["ExposureTime Max"] = setting_config["exposuretime max"]
         else:
             dev_info["ExposureTime Max"] = 1.0 / dev_info["FrameRate"] * 1000 * 1000
 
@@ -222,8 +226,8 @@ def get_device_info(parser, load_json_path="default.json"):
                 raise e
 
         dev_info["ExposureTime Min"] = 0.0
-        if "exposuretime_max" in setting_config:
-            dev_info["ExposureTime Max"] = setting_config["exposuretime_max"]
+        if "exposuretime max" in setting_config:
+            dev_info["ExposureTime Max"] = setting_config["exposuretime max"]
         elif has_fps_feature:
             dev_info["ExposureTime Max"] = 1.0 / dev_info["FrameRate"] * 1000 * 1000
         else:
