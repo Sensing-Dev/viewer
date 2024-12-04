@@ -403,13 +403,14 @@ class U3VCameraGUI:
                 "winfos": winfos,
 ####################        ADDITIONAL INFORMATION         ###########################
                 "exposuretime max":  self.exposuretime_max,
-                "fps": self.fps
+                "fps": self.fps,
+                "pixelformat": self.pixel_format
             }
 
 
             for i in range(self.num_device):
                 with open('default.json', 'w') as f:
-                    json.dump(config, f)
+                    json.dump(config, f, indent=4, separators=(',', ': '))
 
         log_write("DEBUG", "Closing...")
 
