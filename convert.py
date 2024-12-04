@@ -1,6 +1,7 @@
 import json
 import shutil
 import time
+import traceback
 
 import cv2
 import numpy as np
@@ -74,7 +75,7 @@ class Converter:
                             del_bin(file_path, time_out)
                     log_write("DEBUG", "Device {}: Finish saving images in {}".format(i, output_directory))
                 except Exception as e:
-                    log_write("Error", e)
+                    log_write("Error", traceback.format_exc())
 
         prefix_name0 = DEFAULT_GENDC_PREFIX_NAME0 if is_gendc else DEFAULT_PREFIX_NAME0
         prefix_name1 = DEFAULT_GENDC_PREFIX_NAME1 if is_gendc else DEFAULT_PREFIX_NAME1
@@ -318,7 +319,7 @@ class Converter:
                 log_write("DEBUG", "Device {}: Finish saving video in {}".format(i, output_directory))
 
             except Exception as e:
-                log_write("Error", e)
+                log_write("WARNING", traceback.format_exc())
             finally:
                 for writer in video_writers:
                     writer.release()
@@ -474,7 +475,7 @@ def read_config(file_path, time_out):
                 sensor_info = json.load(f)
             succeed = True
         except:
-            pass
+            log_write("WARNING", traceback.format_exc())
     if len(sensor_info) == 0:
         log_write("WARNING", "config file is empty")
 

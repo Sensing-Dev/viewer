@@ -178,9 +178,9 @@ def get_device_info(parser, load_json_path="default.json"):
         else:
             try:
                 dev_info["PixelFormat"] = devices[0].get_string_feature_value("PixelFormat")
-            except:
+            except Exception as e:
                 log_write("ERROR", "Can not found pixelformat from config, please manually set PixelFormat in json file")
-                raise Exception()
+                raise e
 
         if dev_info["PixelFormat"] not in pfnc:
             log_write("ERROR", "{} is currently not supported on calibration tool".format(dev_info["PixelFormat"]))
@@ -210,27 +210,25 @@ def get_device_info(parser, load_json_path="default.json"):
             dev_info["Gain Max"] = float(devices[0].get_integer_feature_bounds(dev_info["Gain Key"])[1])
 
         has_fps_feature = False
-        # get frame rate by AcquisitionFrameRate
-        try:
-            dev_info["FrameRate"] = devices[0].get_float_feature_value("AcquisitionFrameRate")
-            has_framerate_feature = True
-        except:
-            # if not, set by json file
-            if "fps" in setting_config:
-                dev_info["FrameRate"] = setting_config["fps"]
-            else:
+
+        if "fps" in setting_config:
+            dev_info["FrameRate"] = setting_config["fps"]
+        else:  # get frame rate by AcquisitionFrameRate
+            try:
+                dev_info["FrameRate"] = devices[0].get_float_feature_value("AcquisitionFrameRate")
+                has_fps_feature = True
+            except Exception as e:
                 log_write("ERROR", "Can not found fps from config, please manually set FrameRate in json file")
-                raise Exception()
+                raise e
 
         dev_info["ExposureTime Min"] = 0.0
-        if has_fps_feature:
+        if "exposuretime_max" in setting_config:
+            dev_info["ExposureTime Max"] = setting_config["exposuretime_max"]
+        elif has_fps_feature:
             dev_info["ExposureTime Max"] = 1.0 / dev_info["FrameRate"] * 1000 * 1000
         else:
-            if "exposuretime_max" in setting_config:
-                dev_info["ExposureTime Max"] = setting_config["exposuretime_max"]
-            else:
-                log_write("ERROR", "Can not found exposuretime max from config, please manually set maximum exposure time in json file")
-                raise Exception()
+            log_write("ERROR","Can not found exposuretime max from config, please manually set maximum exposure time in json file")
+            raise
 
         dev_info["PayloadSize"] = []
         for i in range(dev_info["Number of Devices"]):
@@ -241,11 +239,12 @@ def get_device_info(parser, load_json_path="default.json"):
 
         if load_json:
             dev_info[dev_info["Gain Key"]] = [min(gain, dev_info["Gain Max"]) for gain in setting_config["gains"]] \
-                                          if load_json and "gains" in setting_config else [dev_info["Gain Max"]] * dev_info["Number of Devices"]
+                if load_json and "gains" in setting_config else [dev_info["Gain Max"]] * dev_info["Number of Devices"]
 
-            dev_info[dev_info["ExposureTime Key"]] = [min(exp, dev_info["ExposureTime Max"]) for exp in setting_config["exposuretimes"]] \
-                                                 if load_json and "exposuretimes" in setting_config else \
-                                                [dev_info["ExposureTime Max"]] * dev_info["Number of Devices"]
+            dev_info[dev_info["ExposureTime Key"]] = [min(exp, dev_info["ExposureTime Max"]) for exp in
+                                                      setting_config["exposuretimes"]] \
+                if load_json and "exposuretimes" in setting_config else \
+                [dev_info["ExposureTime Max"]] * dev_info["Number of Devices"]
         else:
             for i in range(dev_info["Number of Devices"]):
                 try:
@@ -264,13 +263,24 @@ def get_device_info(parser, load_json_path="default.json"):
         Aravis.shutdown()
 
     test_info["acquisition-bb"] = get_bb_for_obtain_image(dev_info["Number of Devices"], dev_info["PixelFormat"])
-    test_info["Red Gains"] = setting_config["r_gains"] if load_json and "r_gains" in setting_config else [1.0] * dev_info["Number of Devices"]
-    test_info["Blue Gains"] = setting_config["g_gains"] if load_json and "g_gains" in setting_config else [1.0] * dev_info["Number of Devices"]
-    test_info["Green Gains"] = setting_config["b_gains"] if load_json and "b_gains" in setting_config else [1.0] * dev_info["Number of Devices"]
-    test_info["Gendc Mode"] = setting_config["gendc_mode"] if load_json and dev_info["GenDCStreamingMode"] and "gendc_mode" in setting_config else False
+    test_info["Red Gains"] = setting_config["r_gains"] if load_json and "r_gains" in setting_config else [1.0] * \
+                                                                                                         dev_info[
+                                                                                                             "Number of Devices"]
+    test_info["Blue Gains"] = setting_config["g_gains"] if load_json and "g_gains" in setting_config else [1.0] * \
+                                                                                                          dev_info[
+                                                                                                              "Number of Devices"]
+    test_info["Green Gains"] = setting_config["b_gains"] if load_json and "b_gains" in setting_config else [1.0] * \
+                                                                                                           dev_info[
+                                                                                                               "Number of Devices"]
+    test_info["Gendc Mode"] = setting_config["gendc_mode"] if load_json and dev_info[
+        "GenDCStreamingMode"] and "gendc_mode" in setting_config else False
     test_info["Delete Bins"] = setting_config["delete_bin"] if load_json and "delete_bin" in setting_config else True
-    test_info["Window infos"] = setting_config["winfos"] if load_json and "winfos" in setting_config else [dev_info['Width'], dev_info['Height']] * \
-                                                                           dev_info["Number of Devices"]
+    test_info["Window infos"] = setting_config["winfos"] if load_json and "winfos" in setting_config else [dev_info[
+                                                                                                               'Width'],
+                                                                                                           dev_info[
+                                                                                                               'Height']] * \
+                                                                                                          dev_info[
+                                                                                                              "Number of Devices"]
 
     for key in dev_info:
         log_write("INFO", "{0:>20s} : {1}".format(key, dev_info[key]))
