@@ -1,5 +1,7 @@
 ## Changelog
 
+MOVE TO GITHUB RELEASE https://github.com/Sensing-Dev/viewer/releases, no longer update here
+
 ### Update 2024-09-13:
 1. fix and enabled delete checkbox
 2. add delete option to json file

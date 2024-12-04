@@ -32,14 +32,6 @@ pfnc = {
     "BayerRG12": {"value": 0x01100013, "depth": 12, "dim": 2},
 }
 
-
-def switchFontColor(color_mode, current_color=None):
-    if color_mode:
-        return (255, 255, 255) if current_color == (0, 0, 0) else (0, 0, 0)
-    else:
-        return (65535, 65535, 65535) if current_color == (0, 0, 0) else (0, 0, 0)
-
-
 def set_commandline_options():
     parser = argparse.ArgumentParser(description="U3V Camera")
     parser.add_argument('-d', '--directory', default='./output', type=str, help='Directory to save log')
@@ -67,14 +59,14 @@ def log_write(logtype, msg):
 
 # get device info ##############################################################
 def get_device_info(parser, load_json_path="default.json"):
+    dev_info = {}
+    test_info = {}
+    setting_config = {}
     load_json = False
     if os.path.isfile(load_json_path):
         with open(load_json_path, 'r') as f:
             setting_config = json.load(f)
         load_json = True
-
-    dev_info = {}
-    test_info = {}
 
     # get user input
     args = parser.parse_args()
@@ -87,24 +79,39 @@ def get_device_info(parser, load_json_path="default.json"):
         if not os.path.isdir(test_info["Default Directory"]):
             os.mkdir(test_info["Default Directory"])
         dev_info["Number of Devices"] = 2
-        if load_json and dev_info["Number of Devices"] != setting_config["device number"]:
+        if load_json and "device number" in setting_config and dev_info["Number of Devices"] != setting_config["device number"]:
             load_json = False
         dev_info["Width"] = 640
         dev_info["Height"] = 480
 
-        dev_info["PixelFormat"] = args.pixel_format
+        if "pixelformat" in setting_config:
+            dev_info["PixelFormat"] = setting_config["pixelformat"]
+        else:
+            dev_info["PixelFormat"] = args.pixel_format
+
         dev_info["PayloadSize"] = [dev_info["Width"] * dev_info["Height"] * required_bit_depth(
             dev_info["PixelFormat"]) // 8] * dev_info["Number of Devices"]
-        dev_info["FrameRate"] = 25
         dev_info["Gain Min"] = 0
         dev_info["Gain Max"] = 100
         dev_info["Gain Key"] = "Gain"
-        dev_info[dev_info["Gain Key"]] = setting_config["gains"] if load_json else [40] * dev_info["Number of Devices"]
-        dev_info["ExposureTime Min"] = 1
-        dev_info["ExposureTime Max"] = 1.0 / dev_info["FrameRate"] * 1000 * 1000
+        dev_info[dev_info["Gain Key"]] = [min(gain, dev_info["Gain Max"]) for gain in setting_config["gains"]] \
+                                          if load_json and "gains" in setting_config else [dev_info["Gain Max"]] * dev_info["Number of Devices"]
+
+        if "fps" in setting_config:
+            dev_info["FrameRate"] = setting_config["fps"]
+        else:
+            dev_info["FrameRate"] = 25
+
+        dev_info["ExposureTime Min"] = 0.0
+        if "exposuretime max" in setting_config:
+            dev_info["ExposureTime Max"] = setting_config["exposuretime max"]
+        else:
+            dev_info["ExposureTime Max"] = 1.0 / dev_info["FrameRate"] * 1000 * 1000
+
         dev_info["ExposureTime Key"] = "ExposureTimeAbs"
-        dev_info[dev_info["ExposureTime Key"]] = setting_config["exposuretimes"] if load_json else [100] * dev_info[
-            "Number of Devices"]
+        dev_info[dev_info["ExposureTime Key"]] = [min(exp, dev_info["ExposureTime Max"]) for exp in setting_config["exposuretimes"]] \
+                                                 if load_json and "exposuretimes" in setting_config else \
+                                                [dev_info["ExposureTime Max"]] * dev_info["Number of Devices"]
 
         if dev_info["PixelFormat"].startswith("Bayer"):
             test_info["Color Display Mode"] = True
@@ -155,7 +162,7 @@ def get_device_info(parser, load_json_path="default.json"):
                           f"While OperationMode is set to {dev_info['OperationMode']}, Number of Devices is set to {dev_info['Number of Devices']} (Default: 1)")
                 dev_info["Number of Devices"] = expected_num_device
 
-        if load_json and dev_info["Number of Devices"] != setting_config["device number"]:
+        if load_json and "device number" in setting_config and dev_info["Number of Devices"] != setting_config["device number"]:
             load_json = False
 
         if dev_info["Number of Devices"] == 2:
@@ -168,11 +175,17 @@ def get_device_info(parser, load_json_path="default.json"):
 
         dev_info["Width"] = devices[0].get_integer_feature_value("Width")
         dev_info["Height"] = devices[0].get_integer_feature_value("Height")
-        dev_info["PixelFormat"] = devices[0].get_string_feature_value("PixelFormat")
-        try:
-            dev_info["FrameRate"] = devices[0].get_float_feature_value("AcquisitionFrameRate")
-        except:
-            dev_info["FrameRate"] = 30  # how to get the framerate for kizashi 1.0?
+
+        # If there is a conflict, please remove the pixelformat entry from default.json
+        if "pixelformat" in setting_config:
+            dev_info["PixelFormat"] = setting_config["pixelformat"]
+        else:
+            try:
+                dev_info["PixelFormat"] = devices[0].get_string_feature_value("PixelFormat")
+            except Exception as e:
+                log_write("ERROR", "Can not found pixelformat from config, please manually set PixelFormat in json file")
+                raise e
+
         if dev_info["PixelFormat"] not in pfnc:
             log_write("ERROR", "{} is currently not supported on calibration tool".format(dev_info["PixelFormat"]))
             del devices[0]
@@ -196,16 +209,30 @@ def get_device_info(parser, load_json_path="default.json"):
         try:
             dev_info["Gain Min"] = devices[0].get_float_feature_bounds(dev_info["Gain Key"])[0]
             dev_info["Gain Max"] = devices[0].get_float_feature_bounds(dev_info["Gain Key"])[1]
-            # calculated
-            dev_info["ExposureTime Min"] = 1.0
-            dev_info["ExposureTime Max"] = 1.0 / dev_info["FrameRate"] * 1000 * 1000
-
         except:
             dev_info["Gain Min"] = float(devices[0].get_integer_feature_bounds(dev_info["Gain Key"])[0])
             dev_info["Gain Max"] = float(devices[0].get_integer_feature_bounds(dev_info["Gain Key"])[1])
-            # calculated
-            dev_info["ExposureTime Min"] = 1.0
+
+        has_fps_feature = False
+
+        if "fps" in setting_config:
+            dev_info["FrameRate"] = setting_config["fps"]
+        else:  # get frame rate by AcquisitionFrameRate
+            try:
+                dev_info["FrameRate"] = devices[0].get_float_feature_value("AcquisitionFrameRate")
+                has_fps_feature = True
+            except Exception as e:
+                log_write("ERROR", "Can not found fps from config, please manually set FrameRate in json file")
+                raise e
+
+        dev_info["ExposureTime Min"] = 0.0
+        if "exposuretime max" in setting_config:
+            dev_info["ExposureTime Max"] = setting_config["exposuretime max"]
+        elif has_fps_feature:
             dev_info["ExposureTime Max"] = 1.0 / dev_info["FrameRate"] * 1000 * 1000
+        else:
+            log_write("ERROR","Can not found exposuretime max from config, please manually set maximum exposure time in json file")
+            raise
 
         dev_info["PayloadSize"] = []
         for i in range(dev_info["Number of Devices"]):
@@ -215,9 +242,13 @@ def get_device_info(parser, load_json_path="default.json"):
         dev_info[dev_info["ExposureTime Key"]] = []
 
         if load_json:
-            dev_info[dev_info["Gain Key"]] = setting_config["gains"]
-            dev_info[dev_info["ExposureTime Key"]] = setting_config["exposuretimes"]
+            dev_info[dev_info["Gain Key"]] = [min(gain, dev_info["Gain Max"]) for gain in setting_config["gains"]] \
+                if load_json and "gains" in setting_config else [dev_info["Gain Max"]] * dev_info["Number of Devices"]
 
+            dev_info[dev_info["ExposureTime Key"]] = [min(exp, dev_info["ExposureTime Max"]) for exp in
+                                                      setting_config["exposuretimes"]] \
+                if load_json and "exposuretimes" in setting_config else \
+                [dev_info["ExposureTime Max"]] * dev_info["Number of Devices"]
         else:
             for i in range(dev_info["Number of Devices"]):
                 try:
@@ -236,13 +267,24 @@ def get_device_info(parser, load_json_path="default.json"):
         Aravis.shutdown()
 
     test_info["acquisition-bb"] = get_bb_for_obtain_image(dev_info["Number of Devices"], dev_info["PixelFormat"])
-    test_info["Red Gains"] = setting_config["r_gains"] if load_json else [1.0] * dev_info["Number of Devices"]
-    test_info["Blue Gains"] = setting_config["g_gains"] if load_json else [1.0] * dev_info["Number of Devices"]
-    test_info["Green Gains"] = setting_config["b_gains"] if load_json else [1.0] * dev_info["Number of Devices"]
-    test_info["Gendc Mode"] = setting_config["gendc_mode"] if load_json and dev_info["GenDCStreamingMode"] else False
-    test_info["Delete Bins"] = setting_config["delete_bin"] if load_json else True
-    test_info["Window infos"] = setting_config["winfos"] if load_json else [dev_info['Width'], dev_info['Height']] * \
-                                                                           dev_info["Number of Devices"]
+    test_info["Red Gains"] = setting_config["r_gains"] if load_json and "r_gains" in setting_config else [1.0] * \
+                                                                                                         dev_info[
+                                                                                                             "Number of Devices"]
+    test_info["Blue Gains"] = setting_config["g_gains"] if load_json and "g_gains" in setting_config else [1.0] * \
+                                                                                                          dev_info[
+                                                                                                              "Number of Devices"]
+    test_info["Green Gains"] = setting_config["b_gains"] if load_json and "b_gains" in setting_config else [1.0] * \
+                                                                                                           dev_info[
+                                                                                                               "Number of Devices"]
+    test_info["Gendc Mode"] = setting_config["gendc_mode"] if load_json and dev_info[
+        "GenDCStreamingMode"] and "gendc_mode" in setting_config else False
+    test_info["Delete Bins"] = setting_config["delete_bin"] if load_json and "delete_bin" in setting_config else True
+    test_info["Window infos"] = setting_config["winfos"] if load_json and "winfos" in setting_config else [dev_info[
+                                                                                                               'Width'],
+                                                                                                           dev_info[
+                                                                                                               'Height']] * \
+                                                                                                          dev_info[
+                                                                                                              "Number of Devices"]
 
     for key in dev_info:
         log_write("INFO", "{0:>20s} : {1}".format(key, dev_info[key]))
