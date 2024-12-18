@@ -270,10 +270,10 @@ def get_device_info(parser, load_json_path="default.json"):
     test_info["Red Gains"] = setting_config["r_gains"] if load_json and "r_gains" in setting_config else [1.0] * \
                                                                                                          dev_info[
                                                                                                              "Number of Devices"]
-    test_info["Blue Gains"] = setting_config["g_gains"] if load_json and "g_gains" in setting_config else [1.0] * \
+    test_info["Blue Gains"] = setting_config["b_gains"] if load_json and "b_gains" in setting_config else [1.0] * \
                                                                                                           dev_info[
                                                                                                               "Number of Devices"]
-    test_info["Green Gains"] = setting_config["b_gains"] if load_json and "b_gains" in setting_config else [1.0] * \
+    test_info["Green Gains"] = setting_config["g_gains"] if load_json and "g_gains" in setting_config else [1.0] * \
                                                                                                            dev_info[
                                                                                                                "Number of Devices"]
     test_info["Gendc Mode"] = setting_config["gendc_mode"] if load_json and dev_info[
