@@ -1,7 +1,4 @@
-import datetime
 import json
-import os
-import datetime
 import argparse
 import sys
 from pathlib import Path
@@ -9,6 +6,8 @@ from pathlib import Path
 import os
 
 from aravis import Aravis
+
+from gendc_python.genicam import tool as genicam
 
 DEFAULT_PREFIX_NAME0 = "image0-"
 DEFAULT_PREFIX_NAME1 = "image1-"
@@ -20,16 +19,16 @@ IPAD_X = 10
 IPAD_Y = 10
 
 pfnc = {
-    "Mono8": {"value": 0x01080001, "depth": 8, "dim": 2},
-    "Mono10": {"value": 0x01100003, "depth": 10, "dim": 2},
-    "Mono12": {"value": 0x01100005, "depth": 12, "dim": 2},
-    "Mono16": {"value": 0x01100009, "depth": 16, "dim": 2},
-    "BayerBG8": {"value": 0x0108000B, "depth": 8, "dim": 2},
-    "BayerBG10": {"value": 0x0110000F, "depth": 10, "dim": 2},
-    "BayerBG12": {"value": 0x01100013, "depth": 12, "dim": 2},
-    "BayerRG8": {"value": 0x0108000B, "depth": 8, "dim": 2},
-    "BayerRG10": {"value": 0x0110000F, "depth": 10, "dim": 2},
-    "BayerRG12": {"value": 0x01100013, "depth": 12, "dim": 2},
+    "Mono8": {"value": genicam.pfnc_convert_pixelformat("Mono8"), "depth": 8, "dim": 2},
+    "Mono10": {"value": genicam.pfnc_convert_pixelformat("Mono10"), "depth": 10, "dim": 2},
+    "Mono12": {"value": genicam.pfnc_convert_pixelformat("Mono12"), "depth": 12, "dim": 2},
+    "Mono16": {"value": genicam.pfnc_convert_pixelformat("Mono16"), "depth": 16, "dim": 2},
+    "BayerBG8": {"value": genicam.pfnc_convert_pixelformat("BayerBG8"), "depth": 8, "dim": 2},
+    "BayerBG10": {"value": genicam.pfnc_convert_pixelformat("BayerBG10"), "depth": 10, "dim": 2},
+    "BayerBG12": {"value": genicam.pfnc_convert_pixelformat("BayerBG12"), "depth": 12, "dim": 2},
+    "BayerRG8": {"value": genicam.pfnc_convert_pixelformat("BayerRG8"), "depth": 8, "dim": 2},
+    "BayerRG10": {"value": genicam.pfnc_convert_pixelformat("BayerRG10"), "depth": 10, "dim": 2},
+    "BayerRG12": {"value": genicam.pfnc_convert_pixelformat("BayerRG12"), "depth": 12, "dim": 2},
 }
 
 def set_commandline_options():
